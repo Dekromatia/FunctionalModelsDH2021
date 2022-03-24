@@ -1,0 +1,1042 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Dekromatia/FunctionalModelsDH2021/blob/main/%D0%92%D0%B5%D1%80%D1%81%D0%B8%D1%8F_3_0_%22HW10_ipynb%22%22.ipynb%2023.03.21\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "id": "b1VNkV6YK_cJ"
+      },
+      "outputs": [],
+      "source": [
+        "import requests"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import re"
+      ],
+      "metadata": {
+        "id": "AtyAB_UAvSyl"
+      },
+      "execution_count": 2,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd"
+      ],
+      "metadata": {
+        "id": "p5DZwfpQ8LH_"
+      },
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import time"
+      ],
+      "metadata": {
+        "id": "nTLzbNyokLT-"
+      },
+      "execution_count": 4,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 5,
+      "metadata": {
+        "id": "dV5iEeZrW-CS"
+      },
+      "outputs": [],
+      "source": [
+        "from bs4 import BeautifulSoup"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np"
+      ],
+      "metadata": {
+        "id": "eegp6iabKSRY"
+      },
+      "execution_count": 6,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from requests.sessions import session"
+      ],
+      "metadata": {
+        "id": "Vk3iRrJPXNey"
+      },
+      "execution_count": 7,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install fake_useragent"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "_socRg_03uh4",
+        "outputId": "bc8c1d1d-92b6-4c85-83ce-03de243c7df0"
+      },
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting fake_useragent\n",
+            "  Downloading fake-useragent-0.1.11.tar.gz (13 kB)\n",
+            "Building wheels for collected packages: fake-useragent\n",
+            "  Building wheel for fake-useragent (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for fake-useragent: filename=fake_useragent-0.1.11-py3-none-any.whl size=13502 sha256=fd4b0ab7f3aa10d287c5100dbe41fd29da119a25f9c15cf57fc8fdbaa51aa8b4\n",
+            "  Stored in directory: /root/.cache/pip/wheels/ed/f7/62/50ab6c9a0b5567267ab76a9daa9d06315704209b2c5d032031\n",
+            "Successfully built fake-useragent\n",
+            "Installing collected packages: fake-useragent\n",
+            "Successfully installed fake-useragent-0.1.11\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from fake_useragent import UserAgent\n",
+        "print(UserAgent().chrome)"
+      ],
+      "metadata": {
+        "id": "60u5YgJw3wj8",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "b4e9674b-3fac-4aca-a24c-82586c027c81"
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "Error occurred during loading data. Trying to use cache server https://fake-useragent.herokuapp.com/browsers/0.1.11\n",
+            "Traceback (most recent call last):\n",
+            "  File \"/usr/local/lib/python3.7/dist-packages/fake_useragent/utils.py\", line 154, in load\n",
+            "    for item in get_browsers(verify_ssl=verify_ssl):\n",
+            "  File \"/usr/local/lib/python3.7/dist-packages/fake_useragent/utils.py\", line 99, in get_browsers\n",
+            "    html = html.split('<table class=\"w3-table-all notranslate\">')[1]\n",
+            "IndexError: list index out of range\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1664.3 Safari/537.36\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 10,
+      "metadata": {
+        "id": "wENQQpnqLR9D",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "e2d5d907-9312-436a-d360-400fbee74016"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "True\n"
+          ]
+        }
+      ],
+      "source": [
+        "main_page = requests.get('https://opisanie-kartin.ru/')\n",
+        "print(main_page.ok)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 11,
+      "metadata": {
+        "id": "e3HaJzx-PF0F",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "13124e35-01aa-4ebb-e0f2-4f24f46fcce7"
+      },
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "200"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 11
+        }
+      ],
+      "source": [
+        "main_page.status_code"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 12,
+      "metadata": {
+        "id": "WESDX-2GPazf",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 109
+        },
+        "outputId": "df362c77-887e-4bf9-c9d6-7883fd39fa79"
+      },
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "'<!DOCTYPE html>\\n<!--[if IE 7]>\\n<html class=\"ie ie7\" lang=\"ru-RU\">\\n<![endif]-->\\n<!--[if IE 8]>\\n<html class=\"ie ie8\" lang=\"ru-RU\">\\n<![endif]-->\\n<!--[if !(IE 7) | !(IE 8)  ]><!-->\\n<html lang=\"ru-RU\">\\n<!--<![endif]-->\\n<head>\\n  <meta charset=\"UTF-8\" /> \\n  <meta name=\"viewport\" content=\"width=device-width\" />  \\n    \\n  <!--[if lt IE 9]>\\n\\t<script src=\"https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/html5.js\"></script>\\n\\t<![endif]-->\\n<title>Описания картин художников русских и зарубежных художинков</title>\\n<style type=\\'text/css\\'>\\t\\tbody .grid-entry, body #main-content .js-masonry .sticky { width: 25%; }\\t\\t#wrapper .post-entry .attachment-post-thumbnail, #wrapper .post-entry .attachment-square-thumb, #wrapper .grid-entry .attachment-post-thumbnail { -webkit-transition: all 1s ease; -moz-transition: all 1s ease; -o-transition: all 1s ease; -ms-transition: all 1s ease; transition: all 1s ease; } #wrapper .post-entry .attachment-post-thumbnail:hover, #wrapper .post-entry .attachment-square-thumb:hover, #wrapper .grid-entry .attachment-post-thumbnail:hover { opacity: 0.8; filter: alpha(opacity=80); }\\t\\tbody #main-content .post-entry .post-entry-headline { margin-bottom: 10px; } .post-entry .video-thumbnail { margin-top: 15px; } .grid-entry .video-thumbnail { margin-top: 10px; }\\t\\thtml body, #wrapper blockquote, #wrapper q, #wrapper .container #comments .comment, #wrapper .container #comments .comment time, #wrapper .container #commentform .form-allowed-tags, #wrapper .container #commentform p, #wrapper input, #wrapper button, #wrapper textarea, #wrapper select, #wrapper #main-content .post-meta { font-family: \"Istok Web\", Arial, Helvetica, sans-serif; }\\t\\tbody p, body ul, body ol, body li, body dl, body address, body table { font-size: 16px; }\\t\\t#wrapper #wrapper-header .site-title { font-family: \"Istok Web\", Arial, Helvetica, sans-serif; }\\t\\t#wrapper #wrapper-header .site-title { font-size: 35px; }    #wrapper h1, #wrapper h2, #wrapper h3, #wrapper h4, #wrapper h5, #wrapper h6, #wrapper .container .navigation .section-heading, #wrapper #comments .entry-headline, #wrapper .info-box .info-box-headline, #wrapper .presentation-box .presentation-box-headline, #wrapper .presentation-box .presentation-box-subtitle, #wrapper .box-image .box-image-text .box-image-headline, #wrapper .header-image .header-image-text .header-image-headline { font-family: \"Istok Web\", Arial, Helvetica, sans-serif; }\\t\\t#wrapper h1 { font-size: 20px; }\\t\\t#wrapper h2, #wrapper #comments .entry-headline { font-size: 18px; }\\t\\t#wrapper h3 { font-size: 16px; }\\t\\t#wrapper .container #main-content section .entry-headline { font-family: \"Istok Web\", Arial, Helvetica, sans-serif; }\\t\\t#wrapper #main-content .post-entry .post-entry-headline, #wrapper #main-content .grid-entry .grid-entry-headline, #wrapper #main-content .slides li a, #wrapper #main-content .home-list-posts ul li a { font-family: \"Istok Web\", Arial, Helvetica, sans-serif; }\\t\\t#wrapper #main-content .post-entry .post-entry-headline, #wrapper #main-content .grid-entry .grid-entry-headline { font-size: 18px; }    #wrapper .container #sidebar .sidebar-widget .sidebar-headline, #wrapper .foreverwood_widget_content .tab_title a, #wrapper #wrapper-footer #footer .footer-widget .footer-headline { font-family: \"Istok Web\", Arial, Helvetica, sans-serif; }\\t\\t#wrapper #wrapper-header .menu-box ul li a, #wrapper #wrapper-header .menu-panel ul li a { font-family: \"Istok Web\", Arial, Helvetica, sans-serif; }</style>\\n\\t\\t<!-- All in One SEO 4.1.8 -->\\n\\t\\t<meta name=\"description\" content=\"Описания картин великих русских и зарубежных художников\" />\\n\\t\\t<meta name=\"robots\" content=\"max-image-preview:large\" />\\n\\t\\t<meta name=\"keywords\" content=\"описание,картина\" />\\n\\t\\t<link rel=\"canonical\" href=\"https://opisanie-kartin.ru/\" />\\n\\t\\t<meta name=\"google\" content=\"nositelinkssearchbox\" />\\n\\t\\t<!-- All in One SEO -->\\n\\n<link rel=\\'dns-prefetch\\' href=\\'//fonts.googleapis.com\\' />\\n<link rel=\\'dns-prefetch\\' href=\\'//s.w.org\\' />\\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"Описание картин &raquo; Лента\" href=\"https://opisanie-kartin.ru/feed/\" />\\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"Описание картин &raquo; Лента комментариев\" href=\"https://opisanie-kartin.ru/comments/feed/\" />\\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"Описание картин &raquo; Лента комментариев к &laquo;Добро пожаловать!&raquo;\" href=\"https://opisanie-kartin.ru/about/feed/\" />\\n<script type=\"text/javascript\">\\nwindow._wpemojiSettings = {\"baseUrl\":\"https:\\\\/\\\\/s.w.org\\\\/images\\\\/core\\\\/emoji\\\\/13.1.0\\\\/72x72\\\\/\",\"ext\":\".png\",\"svgUrl\":\"https:\\\\/\\\\/s.w.org\\\\/images\\\\/core\\\\/emoji\\\\/13.1.0\\\\/svg\\\\/\",\"svgExt\":\".svg\",\"source\":{\"concatemoji\":\"https:\\\\/\\\\/opisanie-kartin.ru\\\\/wp-includes\\\\/js\\\\/wp-emoji-release.min.js?ver=5.9.1\"}};\\n/*! This file is auto-generated */\\n!function(e,a,t){var n,r,o,i=a.createElement(\"canvas\"),p=i.getContext&&i.getContext(\"2d\");function s(e,t){var a=String.fromCharCode;p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0);e=i.toDataURL();return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement(\"script\");t.src=e,t.defer=t.type=\"text/javascript\",a.getElementsByTagName(\"head\")[0].appendChild(t)}for(o=Array(\"flag\",\"emoji\"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline=\"top\",p.font=\"600 32px Arial\",e){case\"flag\":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case\"emoji\":return!s([10084,65039,8205,55357,56613],[10084,65039,8203,55357,56613])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],\"flag\"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener(\"DOMContentLoaded\",n,!1),e.addEventListener(\"load\",n,!1)):(e.attachEvent(\"onload\",n),a.attachEvent(\"onreadystatechange\",function(){\"complete\"===a.readyState&&t.readyCallback()})),(n=t.source||{}).concatemoji?c(n.concatemoji):n.wpemoji&&n.twemoji&&(c(n.twemoji),c(n.wpemoji)))}(window,document,window._wpemojiSettings);\\n</script>\\n<style type=\"text/css\">\\nimg.wp-smiley,\\nimg.emoji {\\n\\tdisplay: inline !important;\\n\\tborder: none !important;\\n\\tbox-shadow: none !important;\\n\\theight: 1em !important;\\n\\twidth: 1em !important;\\n\\tmargin: 0 0.07em !important;\\n\\tvertical-align: -0.1em !important;\\n\\tbackground: none !important;\\n\\tpadding: 0 !important;\\n}\\n</style>\\n\\t<link rel=\\'stylesheet\\' id=\\'wp-block-library-css\\'  href=\\'https://opisanie-kartin.ru/wp-includes/css/dist/block-library/style.min.css?ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<style id=\\'global-styles-inline-css\\' type=\\'text/css\\'>\\nbody{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url(\\'#wp-duotone-dark-grayscale\\');--wp--preset--duotone--grayscale: url(\\'#wp-duotone-grayscale\\');--wp--preset--duotone--purple-yellow: url(\\'#wp-duotone-purple-yellow\\');--wp--preset--duotone--blue-red: url(\\'#wp-duotone-blue-red\\');--wp--preset--duotone--midnight: url(\\'#wp-duotone-midnight\\');--wp--preset--duotone--magenta-yellow: url(\\'#wp-duotone-magenta-yellow\\');--wp--preset--duotone--purple-green: url(\\'#wp-duotone-purple-green\\');--wp--preset--duotone--blue-orange: url(\\'#wp-duotone-blue-orange\\');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}\\n</style>\\n<link rel=\\'stylesheet\\' id=\\'wordpress-popular-posts-css-css\\'  href=\\'https://opisanie-kartin.ru/wp-content/plugins/wordpress-popular-posts/assets/css/wpp.css?ver=5.5.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font1-css\\'  href=\\'//fonts.googleapis.com/css?family=Istok+Web&#038;subset=cyrillic-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font2-css\\'  href=\\'//fonts.googleapis.com/css?family=Istok+Web&#038;subset=cyrillic-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font4-css\\'  href=\\'//fonts.googleapis.com/css?family=Istok+Web&#038;subset=cyrillic-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font5-css\\'  href=\\'//fonts.googleapis.com/css?family=Istok+Web&#038;subset=cyrillic-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font6-css\\'  href=\\'//fonts.googleapis.com/css?family=Istok+Web&#038;subset=cyrillic-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font8-css\\'  href=\\'//fonts.googleapis.com/css?family=Istok+Web&#038;subset=cyrillic-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font10-css\\'  href=\\'//fonts.googleapis.com/css?family=Istok+Web&#038;subset=cyrillic-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-style-turquoise-css\\'  href=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/css/colors/turquoise.css?ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-elegantfont-css\\'  href=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/css/elegantfont.css?ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-style-css\\'  href=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/style.css?ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-google-font-default-css\\'  href=\\'//fonts.googleapis.com/css?family=PT+Sans&#038;subset=latin%2Clatin-ext&#038;ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<link rel=\\'stylesheet\\' id=\\'foreverwood-tab-widget-css\\'  href=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/functions/fe/wp-tab-widget/css/wp-tab-widget.css?ver=5.9.1\\' type=\\'text/css\\' media=\\'all\\' />\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-includes/js/jquery/jquery.min.js?ver=3.6.0\\' id=\\'jquery-core-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.3.2\\' id=\\'jquery-migrate-js\\'></script>\\n<script type=\\'application/json\\' id=\\'wpp-json\\'>\\n{\"sampling_active\":0,\"sampling_rate\":100,\"ajax_url\":\"https:\\\\/\\\\/opisanie-kartin.ru\\\\/wp-json\\\\/wordpress-popular-posts\\\\/v1\\\\/popular-posts\",\"api_url\":\"https:\\\\/\\\\/opisanie-kartin.ru\\\\/wp-json\\\\/wordpress-popular-posts\",\"ID\":0,\"token\":\"d8eaade225\",\"lang\":0,\"debug\":0}\\n</script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/plugins/wordpress-popular-posts/assets/js/wpp.min.js?ver=5.5.1\\' id=\\'wpp-js-js\\'></script>\\n<link rel=\"https://api.w.org/\" href=\"https://opisanie-kartin.ru/wp-json/\" /><link rel=\"alternate\" type=\"application/json\" href=\"https://opisanie-kartin.ru/wp-json/wp/v2/pages/2\" /><link rel=\"wlwmanifest\" type=\"application/wlwmanifest+xml\" href=\"https://opisanie-kartin.ru/wp-includes/wlwmanifest.xml\" /> \\n<link rel=\\'shortlink\\' href=\\'https://opisanie-kartin.ru/\\' />\\n<link rel=\"alternate\" type=\"application/json+oembed\" href=\"https://opisanie-kartin.ru/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fopisanie-kartin.ru%2F\" />\\n<link rel=\"alternate\" type=\"text/xml+oembed\" href=\"https://opisanie-kartin.ru/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fopisanie-kartin.ru%2F&#038;format=xml\" />\\n            <style id=\"wpp-loading-animation-styles\">@-webkit-keyframes bgslide{from{background-position-x:0}to{background-position-x:-200%}}@keyframes bgslide{from{background-position-x:0}to{background-position-x:-200%}}.wpp-widget-placeholder,.wpp-widget-block-placeholder{margin:0 auto;width:60px;height:3px;background:#dd3737;background:linear-gradient(90deg,#dd3737 0%,#571313 10%,#dd3737 100%);background-size:200% auto;border-radius:3px;-webkit-animation:bgslide 1s infinite linear;animation:bgslide 1s infinite linear}</style>\\r\\n            \\n<meta property=\\'og:title\\' content=\\'Добро пожаловать!\\' />\\n<meta property=\\'og:site_name\\' content=\\'Описание картин\\' />\\n<meta property=\\'og:url\\' content=\\'https://opisanie-kartin.ru/\\' />\\n<meta property=\\'og:type\\' content=\\'article\\' /><style type=\"text/css\">/* =Responsive Map fix\\n-------------------------------------------------------------- */\\n.foreverwood_map_canvas img {\\n\\tmax-width: none;\\n}</style><link rel=\"icon\" href=\"https://opisanie-kartin.ru/wp-content/uploads/2015/01/cropped-botichelli-sandro-portret-simonetty-vespuchchi-32x32.jpg\" sizes=\"32x32\" />\\n<link rel=\"icon\" href=\"https://opisanie-kartin.ru/wp-content/uploads/2015/01/cropped-botichelli-sandro-portret-simonetty-vespuchchi-192x192.jpg\" sizes=\"192x192\" />\\n<link rel=\"apple-touch-icon\" href=\"https://opisanie-kartin.ru/wp-content/uploads/2015/01/cropped-botichelli-sandro-portret-simonetty-vespuchchi-180x180.jpg\" />\\n<meta name=\"msapplication-TileImage\" content=\"https://opisanie-kartin.ru/wp-content/uploads/2015/01/cropped-botichelli-sandro-portret-simonetty-vespuchchi-270x270.jpg\" />\\n   \\n\\n\\t<!-- Yandex.Metrika counter -->\\n<script type=\"text/javascript\" >\\n    (function (d, w, c) {\\n        (w[c] = w[c] || []).push(function() {\\n            try {\\n                w.yaCounter27755913 = new Ya.Metrika({\\n                    id:27755913,\\n                    clickmap:true,\\n                    trackLinks:true,\\n                    accurateTrackBounce:true,\\n                    webvisor:true\\n                });\\n            } catch(e) { }\\n        });\\n\\n        var n = d.getElementsByTagName(\"script\")[0],\\n            s = d.createElement(\"script\"),\\n            f = function () { n.parentNode.insertBefore(s, n); };\\n        s.type = \"text/javascript\";\\n        s.async = true;\\n        s.src = \"https://mc.yandex.ru/metrika/watch.js\";\\n\\n        if (w.opera == \"[object Opera]\") {\\n            d.addEventListener(\"DOMContentLoaded\", f, false);\\n        } else { f(); }\\n    })(document, window, \"yandex_metrika_callbacks\");\\n</script>\\n<noscript><div><img src=\"https://mc.yandex.ru/watch/27755913\" style=\"position:absolute; left:-9999px;\" alt=\"\" /></div></noscript>\\n<!-- /Yandex.Metrika counter -->\\n\\t\\n\\t<meta name=\"yandex-verification\" content=\"974e82aed93d006b\" />\\n\\t<meta name=\"google-site-verification\" content=\"O95r5rLNznDD4r0xqWidkjAQDW1-p_jnDdDDNeoWrXA\" />\\n\\t<meta name=\"google-site-verification\" content=\"m7kx6F3IjISaJAkwy_bZDg3oMm9wSlDcQulwmmn9cEs\" />\\n\\n\\t<script async src=\"https://allstat-pp.ru/2883/f9ead177cb5e3fabbe5ce9b6851dab7e8d1b1830.js\"></script>\\n\\n\\t<script src=\"https://yastatic.net/pcode/adfox/loader.js\" crossorigin=\"anonymous\"></script>\\n\\t\\n<!-- Yandex.RTB -->\\n<script>window.yaContextCb=window.yaContextCb||[]</script>\\n<script src=\"https://yandex.ru/ads/system/context.js\" async></script>\\t\\n\\t\\n\\t</head>\\n \\n<body class=\"home page-template-default page page-id-2\" id=\"wrapper\">\\n<div id=\"container-boxed\"> \\n<div id=\"container-boxed-inner\">\\n<header id=\"wrapper-header\">\\n  \\n  <div class=\"header-content-wrapper\">\\n    <div class=\"header-content\">\\n      <div class=\"title-box\">\\n        <a href=\"https://opisanie-kartin.ru/\"><img class=\"header-logo\" src=\"https://opisanie-kartin.ru/wp-content/uploads/opisanie-kartin-karantin.jpg\" alt=\"Описание картин\" /></a>\\n      </div>\\n    </div>\\n  </div>\\n  <div class=\"menu-panel-container\">\\n  <div class=\"menu-panel-wrapper\">\\n    <div class=\"menu-panel\">\\n<div class=\"menu-menu-1-container\"><ul id=\"main-nav\" class=\"menu\"><li id=\"menu-item-48206\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48206\"><a href=\"https://opisanie-kartin.ru/%d0%b0/\">А</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48210\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48210\"><a href=\"https://opisanie-kartin.ru/category/ajvazovskij-ivan/\">Айвазовский Иван</a></li>\\n\\t<li id=\"menu-item-48211\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48211\"><a href=\"https://opisanie-kartin.ru/category/alekseev-fedor/\">Алексеев Федор</a></li>\\n\\t<li id=\"menu-item-48212\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48212\"><a href=\"https://opisanie-kartin.ru/category/altdorfer-albreht/\">Альтдорфер Альбрехт</a></li>\\n\\t<li id=\"menu-item-48213\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48213\"><a href=\"https://opisanie-kartin.ru/category/argunov-ivan/\">Аргунов Иван</a></li>\\n\\t<li id=\"menu-item-48214\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48214\"><a href=\"https://opisanie-kartin.ru/category/arhipov-abram/\">Архипов Абрам</a></li>\\n\\t<li id=\"menu-item-48215\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48215\"><a href=\"https://opisanie-kartin.ru/category/archimboldo-dzhuzeppe/\">Арчимбольдо Джузеппе</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48209\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48209\"><a href=\"https://opisanie-kartin.ru/%d0%b1/\">Б</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48239\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48239\"><a href=\"https://opisanie-kartin.ru/category/bakst-leon/\">Бакст Леон</a></li>\\n\\t<li id=\"menu-item-48240\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48240\"><a href=\"https://opisanie-kartin.ru/category/baskiya-zhan-mishel/\">Баския Жан Мишель</a></li>\\n\\t<li id=\"menu-item-48241\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48241\"><a href=\"https://opisanie-kartin.ru/category/benua-aleksandr/\">Бенуа Александр</a></li>\\n\\t<li id=\"menu-item-48242\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48242\"><a href=\"https://opisanie-kartin.ru/category/bilibin-ivan/\">Билибин Иван</a></li>\\n\\t<li id=\"menu-item-48243\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48243\"><a href=\"https://opisanie-kartin.ru/category/bleik-uilyam/\">Блейк Уильям</a></li>\\n\\t<li id=\"menu-item-48244\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48244\"><a href=\"https://opisanie-kartin.ru/category/bogdanov-belskij-nikolaj/\">Богданов-Бельский Николай</a></li>\\n\\t<li id=\"menu-item-48245\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48245\"><a href=\"https://opisanie-kartin.ru/category/borisov-musatov-viktor/\">Борисов-Мусатов Виктор</a></li>\\n\\t<li id=\"menu-item-48246\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48246\"><a href=\"https://opisanie-kartin.ru/category/borovikovskij-vladimir/\">Боровиковский Владимир</a></li>\\n\\t<li id=\"menu-item-48247\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48247\"><a href=\"https://opisanie-kartin.ru/category/bosh-ieronim/\">Босх Иероним</a></li>\\n\\t<li id=\"menu-item-48248\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48248\"><a href=\"https://opisanie-kartin.ru/category/sandro-bottichelli/\">Боттичелли Сандро</a></li>\\n\\t<li id=\"menu-item-48249\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48249\"><a href=\"https://opisanie-kartin.ru/category/brak-zhorzh/\">Брак Жорж</a></li>\\n\\t<li id=\"menu-item-48250\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48250\"><a href=\"https://opisanie-kartin.ru/category/breigel-piter/\">Брейгель Питер старший</a></li>\\n\\t<li id=\"menu-item-48251\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48251\"><a href=\"https://opisanie-kartin.ru/category/brodskij-isaak/\">Бродский Исаак</a></li>\\n\\t<li id=\"menu-item-48252\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48252\"><a href=\"https://opisanie-kartin.ru/category/bryullov-karl/\">Брюллов Карл</a></li>\\n\\t<li id=\"menu-item-48253\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48253\"><a href=\"https://opisanie-kartin.ru/category/bugro-vilyam/\">Бугро Вильям</a></li>\\n\\t<li id=\"menu-item-48254\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48254\"><a href=\"https://opisanie-kartin.ru/category/buonarroti-mikelandzhelo/\">Буонарроти Микеланджело</a></li>\\n\\t<li id=\"menu-item-48255\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48255\"><a href=\"https://opisanie-kartin.ru/category/burlyuk-david/\">Бурлюк Давид</a></li>\\n\\t<li id=\"menu-item-48256\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48256\"><a href=\"https://opisanie-kartin.ru/category/bushe-fransua/\">Буше Франсуа</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48275\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48275\"><a href=\"https://opisanie-kartin.ru/%d0%b2/\">В</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48276\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48276\"><a href=\"https://opisanie-kartin.ru/category/van-gog-vinsent/\">Ван Гог Винсент</a></li>\\n\\t<li id=\"menu-item-48277\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48277\"><a href=\"https://opisanie-kartin.ru/category/van-deik-antonis/\">Ван Дейк Антонис.</a></li>\\n\\t<li id=\"menu-item-48278\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48278\"><a href=\"https://opisanie-kartin.ru/category/konstantin-vasilyev/\">Васильев Константин</a></li>\\n\\t<li id=\"menu-item-48279\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48279\"><a href=\"https://opisanie-kartin.ru/category/vasilyev-fedor/\">Васильев Федор</a></li>\\n\\t<li id=\"menu-item-48280\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48280\"><a href=\"https://opisanie-kartin.ru/category/vasnetsov-viktor/\">Васнецов Виктор</a></li>\\n\\t<li id=\"menu-item-48281\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48281\"><a href=\"https://opisanie-kartin.ru/category/velaskes-diego/\">Веласкес Диего</a></li>\\n\\t<li id=\"menu-item-48282\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48282\"><a href=\"https://opisanie-kartin.ru/category/venecianov-aleksey/\">Венецианов Алексей</a></li>\\n\\t<li id=\"menu-item-48283\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48283\"><a href=\"https://opisanie-kartin.ru/category/veresshagin-vasilij/\">Верещагин Василий</a></li>\\n\\t<li id=\"menu-item-48284\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48284\"><a href=\"https://opisanie-kartin.ru/category/vermeer-yan/\">Вермеер Ян</a></li>\\n\\t<li id=\"menu-item-48285\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48285\"><a href=\"https://opisanie-kartin.ru/category/volkov-efim/\">Волков Ефим</a></li>\\n\\t<li id=\"menu-item-48286\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48286\"><a href=\"https://opisanie-kartin.ru/category/vrubel-mihail/\">Врубель Михаил</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48337\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48337\"><a href=\"https://opisanie-kartin.ru/%d0%b3/\">Г</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48330\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48330\"><a href=\"https://opisanie-kartin.ru/category/ge-nikolaj/\">Ге Николай</a></li>\\n\\t<li id=\"menu-item-48331\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48331\"><a href=\"https://opisanie-kartin.ru/category/geren-pyer/\">Герен Пьер Нарсис</a></li>\\n\\t<li id=\"menu-item-48332\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48332\"><a href=\"https://opisanie-kartin.ru/category/gogen-pol/\">Гоген Поль</a></li>\\n\\t<li id=\"menu-item-48333\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48333\"><a href=\"https://opisanie-kartin.ru/category/goya-francisko/\">Гойя Франциско</a></li>\\n\\t<li id=\"menu-item-48334\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48334\"><a href=\"https://opisanie-kartin.ru/category/golbein-gans/\">Гольбейн Ганс</a></li>\\n\\t<li id=\"menu-item-48335\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48335\"><a href=\"https://opisanie-kartin.ru/category/grabar-igor/\">Грабарь Игорь</a></li>\\n\\t<li id=\"menu-item-48336\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48336\"><a href=\"https://opisanie-kartin.ru/category/grigoryev-sergey/\">Григорьев Сергей</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48434\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48434\"><a href=\"https://opisanie-kartin.ru/%d0%b4/\">Д</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48435\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48435\"><a href=\"https://opisanie-kartin.ru/category/david-zhak-lui/\">Давид Жак Луи</a></li>\\n\\t<li id=\"menu-item-48436\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48436\"><a href=\"https://opisanie-kartin.ru/category/salvador-dali/\">Дали Сальвадор</a></li>\\n\\t<li id=\"menu-item-48437\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48437\"><a href=\"https://opisanie-kartin.ru/category/dega-edgar/\">Дега Эдгар</a></li>\\n\\t<li id=\"menu-item-48438\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48438\"><a href=\"https://opisanie-kartin.ru/category/delakrua-ezhen/\">Делакруа Эжен</a></li>\\n\\t<li id=\"menu-item-48439\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48439\"><a href=\"https://opisanie-kartin.ru/category/dzhordzhone/\">Джорджоне</a></li>\\n\\t<li id=\"menu-item-48440\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48440\"><a href=\"https://opisanie-kartin.ru/category/dobuzhinskij-mstislav/\">Добужинский Мстислав</a></li>\\n\\t<li id=\"menu-item-48441\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48441\"><a href=\"https://opisanie-kartin.ru/category/durer-albreht/\">Дюрер Альбрехт</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48470\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48470\"><a href=\"https://opisanie-kartin.ru/%d0%b6-%d0%b8/\">Ж, З, И</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48471\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48471\"><a href=\"https://opisanie-kartin.ru/category/zheriko-teodor/\">Жерико Теодор</a></li>\\n\\t<li id=\"menu-item-48472\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48472\"><a href=\"https://opisanie-kartin.ru/category/ivanov-aleksandr/\">Иванов Александр</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48475\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48475\"><a href=\"https://opisanie-kartin.ru/%d0%ba/\">К</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48476\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48476\"><a href=\"https://opisanie-kartin.ru/category/kalo-frida/\">Кало Фрида</a></li>\\n\\t<li id=\"menu-item-48477\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48477\"><a href=\"https://opisanie-kartin.ru/category/kandinskij-vasilij/\">Кандинский Василий</a></li>\\n\\t<li id=\"menu-item-48478\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48478\"><a href=\"https://opisanie-kartin.ru/category/karavadzho/\">Караваджо</a></li>\\n\\t<li id=\"menu-item-48479\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48479\"><a href=\"https://opisanie-kartin.ru/category/kiprenskij-orest/\">Кипренский Орест</a></li>\\n\\t<li id=\"menu-item-48480\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48480\"><a href=\"https://opisanie-kartin.ru/category/klimt-gustav/\">Климт Густав</a></li>\\n\\t<li id=\"menu-item-48481\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48481\"><a href=\"https://opisanie-kartin.ru/category/konstebl-dzhon/\">Констебл Джон</a></li>\\n\\t<li id=\"menu-item-48482\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48482\"><a href=\"https://opisanie-kartin.ru/category/konchalovskij-petr/\">Кончаловский Петр</a></li>\\n\\t<li id=\"menu-item-48483\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48483\"><a href=\"https://opisanie-kartin.ru/category/korint-lovis/\">Коринт Ловис</a></li>\\n\\t<li id=\"menu-item-48484\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48484\"><a href=\"https://opisanie-kartin.ru/category/koro-kamil/\">Коро Камиль</a></li>\\n\\t<li id=\"menu-item-48485\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48485\"><a href=\"https://opisanie-kartin.ru/category/korovin-konstantin/\">Коровин Константин</a></li>\\n\\t<li id=\"menu-item-48486\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48486\"><a href=\"https://opisanie-kartin.ru/category/kramskoj-ivan/\">Крамской Иван</a></li>\\n\\t<li id=\"menu-item-48487\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48487\"><a href=\"https://opisanie-kartin.ru/category/kranah-lukas/\">Кранах Лукас</a></li>\\n\\t<li id=\"menu-item-48488\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48488\"><a href=\"https://opisanie-kartin.ru/category/kuindzhi-arhip/\">Куинджи Архип</a></li>\\n\\t<li id=\"menu-item-48489\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48489\"><a href=\"https://opisanie-kartin.ru/category/kuning-villem/\">Кунинг Виллем</a></li>\\n\\t<li id=\"menu-item-48490\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48490\"><a href=\"https://opisanie-kartin.ru/category/kurbe-gyustav/\">Курбе Гюстав</a></li>\\n\\t<li id=\"menu-item-48491\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48491\"><a href=\"https://opisanie-kartin.ru/category/kustodiev-boris/\">Кустодиев Борис</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48513\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48513\"><a href=\"https://opisanie-kartin.ru/%d0%bb/\">Л</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48523\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48523\"><a href=\"https://opisanie-kartin.ru/category/levitan-isaak/\">Левитан Исаак</a></li>\\n\\t<li id=\"menu-item-48524\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48524\"><a href=\"https://opisanie-kartin.ru/category/levickij-dmitrij/\">Левицкий Дмитрий</a></li>\\n\\t<li id=\"menu-item-48525\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48525\"><a href=\"https://opisanie-kartin.ru/category/lentulov-aristarh/\">Лентулов Аристарх</a></li>\\n\\t<li id=\"menu-item-48526\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48526\"><a href=\"https://opisanie-kartin.ru/category/leonardo-da-vinchi/\">Леонардо да Винчи</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48514\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48514\"><a href=\"https://opisanie-kartin.ru/%d0%bc/\">М</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48527\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48527\"><a href=\"https://opisanie-kartin.ru/category/magritt-rene/\">Магритт Рене</a></li>\\n\\t<li id=\"menu-item-48528\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48528\"><a href=\"https://opisanie-kartin.ru/category/mazachcho/\">Мазаччо</a></li>\\n\\t<li id=\"menu-item-48529\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48529\"><a href=\"https://opisanie-kartin.ru/category/make-avgust/\">Маке Август</a></li>\\n\\t<li id=\"menu-item-48530\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48530\"><a href=\"https://opisanie-kartin.ru/category/makovskij-vladimir/\">Маковский Владимир</a></li>\\n\\t<li id=\"menu-item-48531\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48531\"><a href=\"https://opisanie-kartin.ru/category/makovskij-konstantin/\">Маковский Константин</a></li>\\n\\t<li id=\"menu-item-48532\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48532\"><a href=\"https://opisanie-kartin.ru/category/malevich-kazimir/\">Малевич Казимир</a></li>\\n\\t<li id=\"menu-item-48533\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48533\"><a href=\"https://opisanie-kartin.ru/category/mane-eduard/\">Мане Эдуард</a></li>\\n\\t<li id=\"menu-item-48534\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48534\"><a href=\"https://opisanie-kartin.ru/category/mark-franc/\">Марк Франц</a></li>\\n\\t<li id=\"menu-item-48535\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48535\"><a href=\"https://opisanie-kartin.ru/category/matiss-anri/\">Матисс Анри</a></li>\\n\\t<li id=\"menu-item-48536\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48536\"><a href=\"https://opisanie-kartin.ru/category/mashkov-ilya/\">Машков Илья</a></li>\\n\\t<li id=\"menu-item-48537\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48537\"><a href=\"https://opisanie-kartin.ru/category/modilyani-am%d0%b5deo/\">Модильяни Амедео</a></li>\\n\\t<li id=\"menu-item-48538\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48538\"><a href=\"https://opisanie-kartin.ru/category/mondrian-pit/\">Мондриан Пит</a></li>\\n\\t<li id=\"menu-item-48539\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48539\"><a href=\"https://opisanie-kartin.ru/category/klod-mone/\">Моне Клод</a></li>\\n\\t<li id=\"menu-item-48540\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48540\"><a href=\"https://opisanie-kartin.ru/category/munk-edvard/\">Мунк Эдвард</a></li>\\n\\t<li id=\"menu-item-48541\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48541\"><a href=\"https://opisanie-kartin.ru/category/myasoedov-grigorij/\">Мясоедов Григорий</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48515\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48515\"><a href=\"https://opisanie-kartin.ru/%d0%bd-%d0%be/\">Н, О</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48542\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48542\"><a href=\"https://opisanie-kartin.ru/category/nesterov-mihail/\">Нестеров Михаил</a></li>\\n\\t<li id=\"menu-item-48543\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48543\"><a href=\"https://opisanie-kartin.ru/category/o-kif-dzordzhiya/\">О&#8217;Киф Джорджия</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48516\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48516\"><a href=\"https://opisanie-kartin.ru/%d0%bf/\">П</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48544\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48544\"><a href=\"https://opisanie-kartin.ru/category/perov-vasilij/\">Перов Василий</a></li>\\n\\t<li id=\"menu-item-48545\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48545\"><a href=\"https://opisanie-kartin.ru/category/petrov-vodkin-kuzma/\">Петров-Водкин Кузьма</a></li>\\n\\t<li id=\"menu-item-48546\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48546\"><a href=\"https://opisanie-kartin.ru/category/pikasso-pablo/\">Пикассо Пабло</a></li>\\n\\t<li id=\"menu-item-48547\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48547\"><a href=\"https://opisanie-kartin.ru/category/pimonenko-nikolaj/\">Пимоненко Николай</a></li>\\n\\t<li id=\"menu-item-48548\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48548\"><a href=\"https://opisanie-kartin.ru/category/pirosmani-niko/\">Пиросмани Нико</a></li>\\n\\t<li id=\"menu-item-48549\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48549\"><a href=\"https://opisanie-kartin.ru/category/plastov-arkadij/\">Пластов Аркадий</a></li>\\n\\t<li id=\"menu-item-48550\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48550\"><a href=\"https://opisanie-kartin.ru/category/polenov-vasilij/\">Поленов Василий</a></li>\\n\\t<li id=\"menu-item-48551\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48551\"><a href=\"https://opisanie-kartin.ru/category/pussen-nikola/\">Пуссен Николя</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48517\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48517\"><a href=\"https://opisanie-kartin.ru/%d1%80/\">Р</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48552\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48552\"><a href=\"https://opisanie-kartin.ru/category/rafael-santi/\">Рафаэль Санти</a></li>\\n\\t<li id=\"menu-item-48553\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48553\"><a href=\"https://opisanie-kartin.ru/category/rembrandt/\">Рембрандт</a></li>\\n\\t<li id=\"menu-item-48554\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48554\"><a href=\"https://opisanie-kartin.ru/category/renuar-pyer-ogyust/\">Ренуар Пьер Огюст</a></li>\\n\\t<li id=\"menu-item-48555\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48555\"><a href=\"https://opisanie-kartin.ru/category/repin-ilya/\">Репин Илья</a></li>\\n\\t<li id=\"menu-item-48556\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48556\"><a href=\"https://opisanie-kartin.ru/category/rerih-nikolaj/\">Рерих Николай</a></li>\\n\\t<li id=\"menu-item-48557\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48557\"><a href=\"https://opisanie-kartin.ru/category/reshetnikov-fedor/\">Решетников Федор</a></li>\\n\\t<li id=\"menu-item-48558\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48558\"><a href=\"https://opisanie-kartin.ru/category/rokotov-fedor/\">Рокотов Федор</a></li>\\n\\t<li id=\"menu-item-48559\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48559\"><a href=\"https://opisanie-kartin.ru/category/rubens-piter-paul/\">Рубенс Питер Пауль</a></li>\\n\\t<li id=\"menu-item-48560\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48560\"><a href=\"https://opisanie-kartin.ru/category/russo-anri/\">Руссо Анри</a></li>\\n\\t<li id=\"menu-item-48561\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48561\"><a href=\"https://opisanie-kartin.ru/category/rylov-arkadij/\">Рылов Аркадий</a></li>\\n\\t<li id=\"menu-item-48562\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48562\"><a href=\"https://opisanie-kartin.ru/category/ryabushkin-andrej/\">Рябушкин Андрей</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48518\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48518\"><a href=\"https://opisanie-kartin.ru/%d1%81/\">С</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48563\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48563\"><a href=\"https://opisanie-kartin.ru/category/savrasov-aleksej/\">Саврасов Алексей</a></li>\\n\\t<li id=\"menu-item-48564\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48564\"><a href=\"https://opisanie-kartin.ru/category/sezann-pol/\">Сезанн Поль</a></li>\\n\\t<li id=\"menu-item-48565\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48565\"><a href=\"https://opisanie-kartin.ru/category/syora-zhorzh/\">Сёра Жорж</a></li>\\n\\t<li id=\"menu-item-48566\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48566\"><a href=\"https://opisanie-kartin.ru/category/serebryakova-zinaida/\">Серебрякова Зинаида</a></li>\\n\\t<li id=\"menu-item-48567\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48567\"><a href=\"https://opisanie-kartin.ru/category/serov-valentin/\">Серов Валентин</a></li>\\n\\t<li id=\"menu-item-48568\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48568\"><a href=\"https://opisanie-kartin.ru/category/sislej-alfred/\">Сислей Альфред</a></li>\\n\\t<li id=\"menu-item-48569\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48569\"><a href=\"https://opisanie-kartin.ru/category/somov-konstantin/\">Сомов Константин</a></li>\\n\\t<li id=\"menu-item-48570\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48570\"><a href=\"https://opisanie-kartin.ru/category/surbaran-fransisko/\">Сурбаран Франсиско</a></li>\\n\\t<li id=\"menu-item-48571\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48571\"><a href=\"https://opisanie-kartin.ru/category/surikov-vasilij/\">Суриков Василий</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48519\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48519\"><a href=\"https://opisanie-kartin.ru/%d1%82/\">Т</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48572\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48572\"><a href=\"https://opisanie-kartin.ru/category/tyorner-uilyam/\">Тёрнер Уильям</a></li>\\n\\t<li id=\"menu-item-48573\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48573\"><a href=\"https://opisanie-kartin.ru/category/tician/\">Тициан</a></li>\\n\\t<li id=\"menu-item-48574\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48574\"><a href=\"https://opisanie-kartin.ru/category/tropinin-vasilij/\">Тропинин Василий</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48520\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48520\"><a href=\"https://opisanie-kartin.ru/%d1%83-%d1%84-%d1%85/\">У, Ф, Х</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48575\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48575\"><a href=\"https://opisanie-kartin.ru/category/uoterhaus-dzhon/\">Уотерхаус Джон</a></li>\\n\\t<li id=\"menu-item-48576\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48576\"><a href=\"https://opisanie-kartin.ru/category/fedotov-pavel/\">Федотов Павел</a></li>\\n\\t<li id=\"menu-item-48577\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48577\"><a href=\"https://opisanie-kartin.ru/category/flavickij-konstantin/\">Флавицкий Константин</a></li>\\n\\t<li id=\"menu-item-48578\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48578\"><a href=\"https://opisanie-kartin.ru/category/lucien-freid/\">Фрейд Люсьен</a></li>\\n\\t<li id=\"menu-item-48579\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48579\"><a href=\"https://opisanie-kartin.ru/category/hopper-edvard/\">Хоппер Эдвард</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48521\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48521\"><a href=\"https://opisanie-kartin.ru/%d1%86-%d1%87-%d1%88-%d1%89/\">Ц, Ч, Ш, Щ</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48580\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48580\"><a href=\"https://opisanie-kartin.ru/category/tsy-baishi/\">Ци Байши</a></li>\\n\\t<li id=\"menu-item-48581\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48581\"><a href=\"https://opisanie-kartin.ru/category/chyurlyonis-mikaloyus/\">Чурлёнис Микалоюс</a></li>\\n\\t<li id=\"menu-item-48582\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48582\"><a href=\"https://opisanie-kartin.ru/category/shagal-mark/\">Шагал Марк</a></li>\\n\\t<li id=\"menu-item-48583\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48583\"><a href=\"https://opisanie-kartin.ru/category/sharden-zhan/\">Шарден Жан</a></li>\\n\\t<li id=\"menu-item-48584\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48584\"><a href=\"https://opisanie-kartin.ru/category/shevchenko-taras/\">Шевченко Тарас</a></li>\\n\\t<li id=\"menu-item-48585\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48585\"><a href=\"https://opisanie-kartin.ru/category/shile-egon/\">Шиле Эгон</a></li>\\n\\t<li id=\"menu-item-48586\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48586\"><a href=\"https://opisanie-kartin.ru/category/shishkin-ivan/\">Шишкин Иван</a></li>\\n</ul>\\n</li>\\n<li id=\"menu-item-48522\" class=\"menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-48522\"><a href=\"https://opisanie-kartin.ru/%d1%8d-%d1%8e-%d1%8f/\">Э, Ю, Я</a>\\n<ul class=\"sub-menu\">\\n\\t<li id=\"menu-item-48587\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category first-menu-item menu-item-48587\"><a href=\"https://opisanie-kartin.ru/category/engr-dominik/\">Энгр Доминик</a></li>\\n\\t<li id=\"menu-item-48588\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category menu-item-48588\"><a href=\"https://opisanie-kartin.ru/category/esher-mauric/\">Эшер Мауриц</a></li>\\n\\t<li id=\"menu-item-48589\" class=\"menu-item menu-item-type-taxonomy menu-item-object-category last-menu-item menu-item-48589\"><a href=\"https://opisanie-kartin.ru/category/yablonskaya-tatyana/\">Яблонская Татьяна</a></li>\\n</ul>\\n</li>\\n</ul></div>    </div>\\n  </div>\\n  </div>\\n\\n</header> <!-- end of wrapper-header --><div id=\"wrapper-content\">\\n  <div class=\"container\">\\n  <div id=\"main-content\">   \\n    <div id=\"content\">\\n      <div class=\"content-headline\">\\n      </div>\\n      <div class=\"entry-content\">\\n<p>Дорогие любители живописи! Ищете описание или название той или иной картины? Вы попали в нужное место! Мы рады приветствовать вас на нашем сайте, где собрано множество качественных и интересных описаний картин известных и не очень русских и зарубежных художников. База картин постоянно растет, каждый день мы добавляем новые картины и описания к ним.<br />\\nДрузья, если вы хотите поделиться своим видением той или иной картины, у вас есть хорошее, качественное ее описание, можете помочь другим людям и прислать его к нам на почту opisaniekartin@gmail.com. Все работы будут рассмотрены, лучшие опубликованы на сайте, а активных участников ждут призы!</p>\\n<table border=\"1\" width=\"100%\" rules=\"all\">\\n<tbody>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"/category/ajvazovskij-ivan/\"><img class=\"aligncenter size-thumbnail wp-image-318\" src=\"/wp-content/uploads/2014/12/Ajvazovskij-Ivan-150x150.jpg\" alt=\"Ajvazovskij-Ivan-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"/category/ajvazovskij-ivan/\">Айвазовский Иван</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"/category/alekseev-fedor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-394\" src=\"/wp-content/uploads/2015/01/Alekseev-Fedor-opisanie-kartin-150x150.jpg\" alt=\"Alekseev-Fedor-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"/category/alekseev-fedor/\">Алексеев Федор</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"/category/altdorfer-albreht/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-400\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Albreht-Altdorfer-opisanie-kartin-150x150.jpg\" alt=\"Albreht-Altdorfer-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"/category/altdorfer-albreht/\">Альтдорфер Альбрехт</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"/category/argunov-ivan/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-406\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Argunov-Ivan-opisanie-kartin-150x150.jpg\" alt=\"Argunov-Ivan-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"/category/argunov-ivan/\">Аргунов Иван</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"/category/arhipov-abram/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-428\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Arhipov-Abram-opisanie-kartin-150x150.jpg\" alt=\"Arhipov-Abram-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"/category/arhipov-abram/\">Архипов Абрам</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"/category/archimboldo-dzhuzeppe/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-432\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Archimboldo-Dzhuzeppe-opisanie-kartin-150x150.jpg\" alt=\"Archimboldo-Dzhuzeppe-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"/category/archimboldo-dzhuzeppe/\">Арчимбольдо Джузеппе</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bakst-leon/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-444\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Bakst-Leon-opisanie-kartin-150x150.jpg\" alt=\"Bakst-Leon-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bakst-leon/\">Бакст Леон</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/baskiya-zhan-mishel/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-25\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/Baskia-zhan-mishel-150x150.jpg\" alt=\"Baskia-zhan-mishel\" width=\"100\" height=\"100\" srcset=\"https://opisanie-kartin.ru/wp-content/uploads/2014/12/Baskia-zhan-mishel-150x150.jpg 150w, https://opisanie-kartin.ru/wp-content/uploads/2014/12/Baskia-zhan-mishel-300x300.jpg 300w, https://opisanie-kartin.ru/wp-content/uploads/2014/12/Baskia-zhan-mishel.jpg 399w\" sizes=\"(max-width: 100px) 100vw, 100px\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/baskiya-zhan-mishel/\">Баския Жан Мишель</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/benua-aleksandr/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-461\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Benua-Aleksandr-opisanie-kartin-150x150.jpg\" alt=\"Benua-Aleksandr-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/benua-aleksandr/\">Бенуа Александр</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bilibin-ivan/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-519\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Bilbibin-Ivan-opisanie-kartin-150x150.jpg\" alt=\"Bilbibin-Ivan-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bilibin-ivan/\">Билибин Иван</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bleik-uilyam/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-524\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Bleik-Uilyam-opisanie-kartin-150x150.jpg\" alt=\"Bleik-Uilyam-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bleik-uilyam/\">Блейк Уильям</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bogdanov-belskij-nikolaj/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-534\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Bogdanov-Belskij-Nikolaj-opisanie-kartin-150x150.jpg\" alt=\"Bogdanov-Belskij-Nikolaj-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bogdanov-belskij-nikolaj/\">Богданов-Бельский Николай</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/borisov-musatov-viktor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-539\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Borisov-Musatov-Viktor-opisanie-kartin-150x150.jpg\" alt=\"Borisov-Musatov-Viktor-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/borisov-musatov-viktor/\">Борисов-Мусатов Виктор</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/borovikovskij-vladimir/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-544\" src=\"http://opisanie-kartin.ru/wp-content/uploads/Borovikovskij-Vladimir-opisanie-kartin-150x150.jpg\" alt=\"Borovikovskij-Vladimir-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/borovikovskij-vladimir/\">Боровиковский Владимир</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bosh-ieronim/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-642\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Bosh-Ieronim-opisanie-kartin-150x150.jpg\" alt=\"Bosh-Ieronim-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bosh-ieronim/\">Босх Иероним</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/sandro-bottichelli/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-30\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/sandro-botihcelli-150x150.jpg\" alt=\"sandro-botihcelli\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/sandro-bottichelli/\">Боттичелли Сандро</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/brak-zhorzh/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-825\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Brak-Zhorzh-opisanie-kartin-150x150.jpg\" alt=\"Brak-Zhorzh-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/brak-zhorzh/\">Брак Жорж</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/breigel-piter/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-606\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Breigel-Piter-starshij-opisanie-kartin-150x150.jpg\" alt=\"Breigel-Piter-starshij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/breigel-piter/\">Брейгель Питер Старший</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/brodskij-isaak/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-664\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Brodskij-Isaak-opisanie-kartin-150x150.jpg\" alt=\"Brodskij-Isaak-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/brodskij-isaak/\">Бродский Исаак</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bryullov-karl/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-676\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Bryullov-Karl-opisanie-kartin-150x150.jpg\" alt=\"Bryullov-Karl-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bryullov-karl/\">Брюллов Карл</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bugro-vilyam/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-152\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/bugro-vilyam-150x150.jpg\" alt=\"bugro-vilyam\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bugro-vilyam/\">Бугро Вильям</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/buonarroti-mikelandzhelo/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-846\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Buanorroti-Mikelandzhelo-opisanie-kartin-150x150.jpg\" alt=\"Buanorroti-Mikelandzhelo-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/buonarroti-mikelandzhelo/\">Буонарроти Микеланджело</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/burlyuk-david/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1399\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Burlyuk-David-opisanie-kartin-150x150.jpg\" alt=\"Burlyuk-David-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/burlyuk-david/\">Бурлюк Давид</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/bushe-fransua/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-851\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Bushe-Fransua-opisanie-kartin-150x150.jpg\" alt=\"Bushe-Fransua-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/bushe-fransua/\">Буше Франсуа</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/van-gog-vinsent/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-876\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Van-Gog-Vincent-opisanie-kartin-150x150.jpg\" alt=\"Van-Gog-Vincent-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/van-gog-vinsent/\">Ван Гог Винсент</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/van-deik-antonis/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-883\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Van-Deik-Antonis-opisanie-kartin-150x150.jpg\" alt=\"Van-Deik-Antonis-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/van-deik-antonis/\">Ван Дейк Антонис</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/konstantin-vasilyev/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-887\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Konstantin-Vasilyev-opisanie-kartin-150x150.jpg\" alt=\"Konstantin-Vasilyev-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/konstantin-vasilyev/\">Васильев Константин</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/vasilyev-fedor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-891\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Vasilyev-Fedor-opisanie-kartin-150x150.jpg\" alt=\"Vasilyev-Fedor-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/vasilyev-fedor/\">Васильев Федор</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/vasnetsov-viktor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-349\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/Vasnetsov-Viktor-150x150.jpg\" alt=\"Vasnetsov-Viktor\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/vasnetsov-viktor/\">Васнецов Виктор</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/velaskes-diego/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-897\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Velaskes-Diego-opisanie-kartin-150x150.jpg\" alt=\"Velaskes-Diego-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/velaskes-diego/\">Веласкес Диего</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/venecianov-aleksey/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-901\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Venecianov-Aleksey-opisanie-kartin-150x150.jpg\" alt=\"Venecianov-Aleksey-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/venecianov-aleksey/\">Венецианов Алексей</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/veresshagin-vasilij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-905\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Veresshagin-Vasilij-opisanie-kartin-150x150.jpg\" alt=\"Veresshagin-Vasilij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/veresshagin-vasilij/\">Верещагин Василий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/vermeer-yan/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1110\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Vermeer-Yan-opisanie-kartin-150x150.jpg\" alt=\"Vermeer-Yan-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/vermeer-yan/\">Вермеер Ян</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/volkov-efim/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1114\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Efim-Volkov-opisanie-kartin-150x150.jpg\" alt=\"Efim-Volkov-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/volkov-efim/\">Волков Ефим</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/vrubel-mihail/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1118\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Vrubel-Mihail-150x150.jpg\" alt=\"Vrubel-Mihail-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/vrubel-mihail/\">Врубель Михаил</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/ge-nikolaj/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1122\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Ge-Nikolaj-opisanie-kartin-150x150.jpg\" alt=\"Ge-Nikolaj-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/ge-nikolaj/\">Ге Николай</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/geren-pyer/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1537\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Geren-Pyer-opisanie-kartin-150x150.jpg\" alt=\"Geren-Pyer-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/geren-pyer/\">Герен Пьер Нарсис</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/gogen-pol/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1259\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Gogen-Pol-opisanie-kartin-150x150.png\" alt=\"Gogen-Pol-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/gogen-pol/\">Гоген Поль</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/goya-francisko/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1263\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Goya-Francisko-opisanie-kartin-150x150.jpg\" alt=\"Goya-Francisko-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/goya-francisko/\">Гойя Франциско</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/golbein-gans/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1267\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Golbein-Gans-opisanie-kartin-150x150.jpg\" alt=\"Golbein-Gans-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/golbein-gans/\">Гольбейн Ганс младший</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/grabar-igor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-3027\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/02/Grabar-Igor-opisanie-kartin-150x150.jpg\" alt=\"Grabar-Igor-opisanie-kartin\" width=\"100\" height=\"10\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/grabar-igor/\">Грабарь Игорь</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/grigoryev-sergey/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1368\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Grigoryev-Sergey-opisanie-kartin-149x150.jpg\" alt=\"Grigoryev-Sergey-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/grigoryev-sergey/\">Григорьев Сергей</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/david-zhak-lui/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1337\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/David-Zhak-Lui-opisanie-kartin-150x150.jpg\" alt=\"David-Zhak-Lui-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/david-zhak-lui/\">Давид Жак Луи</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/salvador-dali/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-62\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/salvador-dali-150x150.jpg\" alt=\"salvador-dali\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/salvador-dali/\">Дали Сальвадор</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/dega-edgar/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1344\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Dega-Edgar-opisanie-kartin-150x150.jpg\" alt=\"Dega-Edgar-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/dega-edgar/\">Дега Эдгар</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/delakrua-ezhen/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1428\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Delakrua-Ezhen-opisanie-kartin-150x150.jpg\" alt=\"Delakrua-Ezhen-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/delakrua-ezhen/\">Делакруа Эжен</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/dzhordzhone/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1524\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Dzordzhone-opisanie-kartin-150x150.jpg\" alt=\"Dzordzhone-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/dzhordzhone/\">Джорджоне</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/dobuzhinskij-mstislav/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1529\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Dobuzhinskij-Mstislav-opisanie-kartin-150x150.jpg\" alt=\"Dobuzhinskij-Mstislav-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/dobuzhinskij-mstislav/\">Добужинский Мстислав</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/durer-albreht/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1533\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Durer-Albreht-opisanie-kartin-150x150.jpg\" alt=\"Durer-Albreht-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/durer-albreht/\">Дюрер Альбрехт</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/zheriko-teodor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1542\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Zheriko-Teodor-opisanie-kartin-150x150.jpg\" alt=\"Zheriko-Teodor-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/zheriko-teodor/\">Жерико Теодор</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/ivanov-aleksandr/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1546\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Ivanov-Aleksandr-opisanie-kartin-150x150.jpg\" alt=\"Ivanov-Aleksandr-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/ivanov-aleksandr/\">Иванов Александр</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kalo-frida/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1550\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kalo-Frida-opisanie-kartin-150x150.jpg\" alt=\"Kalo-Frida-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kalo-frida/\">Кало Фрида</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kandinskij-vasilij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1706\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kandinskij-Vasilij-opisanie-kartin-150x150.jpeg\" alt=\"Kandinskij-Vasilij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kandinskij-vasilij/\">Кандинский Василий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/karavadzho/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1554\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Karavadzho-opisanie-kartin-150x150.jpg\" alt=\"Karavadzho-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/karavadzho/\">Караваджо</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kiprenskij-orest/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1558\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kiprenskij-Orest-opisanie-kartin-150x150.jpg\" alt=\"Kiprenskij-Orest-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kiprenskij-orest/\">Кипренский Орест</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/klimt-gustav/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1587\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Klimt-Gustav-opisanie-kartin-150x150.jpg\" alt=\"Klimt-Gustav-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/klimt-gustav/\">Климт Густав</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/konstebl-dzhon/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1622\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Konstebl-Dzhon-opisanie-kartin-150x150.jpg\" alt=\"Konstebl-Dzhon-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/konstebl-dzhon/\">Констебл Джон</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/konchalovskij-petr/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1630\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Konchalovskij-Petr-opisanie-kartin-150x150.jpg\" alt=\"Konchalovskij-Petr-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/konchalovskij-petr/\">Кончаловский Петр</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/korint-lovis/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1634\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Korint-Lovis-opisanie-kartin-150x150.jpg\" alt=\"Korint-Lovis-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/korint-lovis/\">Коринт Ловис</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/koro-kamil/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-4795\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/04/Koro-Kamil-opisanie-kartin-150x150.jpg\" alt=\"Koro-Kamil-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/koro-kamil/\">Коро Камиль</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/korovin-konstantin/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1644\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Korovin-Konstantin-opisanie-kartin-150x150.jpg\" alt=\"Korovin-Konstantin-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/korovin-konstantin/\">Коровин Константин</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kramskoj-ivan/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1650\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/kramskoy-ivan-opisanie-kartin-150x150.jpg\" alt=\"kramskoy-ivan-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kramskoj-ivan/\">Крамской Иван</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kranah-lukas/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1654\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kranah-Lukas-opisanie-kartin-150x150.jpg\" alt=\"Kranah-Lukas-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kranah-lukas/\">Кранах Лукас</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kuindzhi-arhip/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1658\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kuindzhi-Arhip-opisanie-kartin-150x150.jpg\" alt=\"Kuindzhi-Arhip-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kuindzhi-arhip/\">Куинджи Архип</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kuning-villem/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-179\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/kuning-villem-150x150.jpg\" alt=\"kuning-villem\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kuning-villem/\">Кунинг Виллем</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kurbe-gyustav/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1638\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kurbe-Gyustav-opisanie-kartin-150x150.jpg\" alt=\"Kurbe-Gyustav-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kurbe-gyustav/\">Курбе Гюстав</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/kustodiev-boris/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1323\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kustodiev-Boris-opisanie-kartin-150x150.jpg\" alt=\"Kustodiev-Boris-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/kustodiev-boris/\">Кустодиев Борис</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/levitan-isaak/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1412\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Levitan-Isaak-opisanie-kartin-150x150.jpg\" alt=\"Levitan-Isaak-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/levitan-isaak/\">Левитан Исаак</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/levickij-dmitrij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1663\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Levickij-Dmitrij-opisanie-kartin-150x150.jpg\" alt=\"Levickij-Dmitrij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/levickij-dmitrij/\">Левицкий Дмитрий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/lentulov-aristarh/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1667\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Lentulov-Aristarh-opisanie-kartin-150x150.jpg\" alt=\"Lentulov-Aristarh-opisanie-kartin\" width=\"100\" height=\"100\" srcset=\"https://opisanie-kartin.ru/wp-content/uploads/2015/01/Lentulov-Aristarh-opisanie-kartin-150x150.jpg 150w, https://opisanie-kartin.ru/wp-content/uploads/2015/01/Lentulov-Aristarh-opisanie-kartin.jpg 200w\" sizes=\"(max-width: 100px) 100vw, 100px\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/lentulov-aristarh/\">Лентулов Аристах</a></p>\\n</td>\\n</tr>\\n</tbody>\\n</table>\\n<p><center><script async src=\"//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js\"></script><br />\\n<!-- kart_cat_01 --><br />\\n<ins class=\"adsbygoogle\" style=\"display: block;\" data-ad-client=\"ca-pub-1128186697998718\" data-ad-slot=\"4968899734\" data-ad-format=\"auto\"></ins><br />\\n<script>\\n(adsbygoogle = window.adsbygoogle || []).push({});\\n</script></center></p>\\n<table border=\"1\" width=\"100%\" rules=\"all\">\\n<tbody>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/leonardo-da-vinchi/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-262\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/Leonardo-da-Vinchi-150x150.jpg\" alt=\"Leonardo-da-Vinchi-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/leonardo-da-vinchi/\">Леонардо да Винчи</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/magritt-rene/\"><img loading=\"lazy\" class=\" size-thumbnail wp-image-781 aligncenter\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Magritt-Rene-opisanie-kartin-150x150.jpg\" alt=\"Magritt-Rene-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/magritt-rene/\">Магритт Рене</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/mazachcho/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1681\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Mazachcho-opisanie-kartin-150x150.jpg\" alt=\"Mazachcho-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/mazachcho/\">Мазаччо</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/make-avgust/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1710\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Make-Avgust-opisanie-kartin-150x150.jpg\" alt=\"Make-Avgust-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/make-avgust/\">Маке Август</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/makovskij-vladimir/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1686\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Makovskij-Vladimir-opisanie-kartin-150x150.jpg\" alt=\"Makovskij-Vladimir-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/makovskij-vladimir/\">Маковский Владимир</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/makovskij-konstantin/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1690\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Makovskij-Konstantin-opisanie-kartin-150x150.jpg\" alt=\"Makovskij-Konstantin-opisanie-kartin\" width=\"100\" height=\"100\" srcset=\"https://opisanie-kartin.ru/wp-content/uploads/2015/01/Makovskij-Konstantin-opisanie-kartin-150x150.jpg 150w, https://opisanie-kartin.ru/wp-content/uploads/2015/01/Makovskij-Konstantin-opisanie-kartin.jpg 220w\" sizes=\"(max-width: 100px) 100vw, 100px\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/makovskij-konstantin/\">Маковский Константин</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/malevich-kazimir/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1694\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Kazimir-Malevich-opisanie-kartin-150x150.jpg\" alt=\"Kazimir-Malevich-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/malevich-kazimir/\">Малевич Казимир</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/mane-eduard/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1135\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Mane-Eduard-opisanie-kartin-150x150.jpg\" alt=\"Mane-Eduard-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/mane-eduard/\">Мане Эдуард</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/mark-franc/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1702\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Mark-Franc-opisanie-kartin-150x150.jpg\" alt=\"Mark-Franc-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/mark-franc/\">Марк Франц</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/matiss-anri/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-334\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/matiss-anri-150x150.jpg\" alt=\"matiss-anri\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/matiss-anri/\">Матисс Анри</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/mashkov-ilya/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1715\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Mashkov-Ilya-opisanie-kartin-150x150.jpg\" alt=\"Mashkov-Ilya-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/mashkov-ilya/\">Машков Илья</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/modilyani-amеdeo\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1720\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Modilyani-Amadeo-opisanie-kartin-150x150.jpg\" alt=\"Modilyani-Amadeo-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/modilyani-amеdeo\">Модильяни Амедео</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/mondrian-pit/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-3048\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/02/Mondrian-Pit-opisanie-kartin-150x150.jpg\" alt=\"Mondrian-Pit-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/mondrian-pit/\">Мондриан Пит</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/klod-mone/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-74\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/klod-mone-portret-150x150.jpg\" alt=\"klod-mone\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/klod-mone/\">Моне Клод</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/munk-edvard/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-745\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Munk-Edvard-opisanie-kartin-150x150.jpg\" alt=\"Munk-Edvard-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/munk-edvard/\">Мунк Эдвард</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/myasoedov-grigorij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1725\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Myasoedov-Grigorij-opisanie-kartin-150x150.jpg\" alt=\"Myasoedov-Grigorij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/myasoedov-grigorij/\">Мясоедов Григорий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/nesterov-mihail/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1729\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Nesterov-Mihail-opisanie-kartin-150x150.jpeg\" alt=\"Nesterov-Mihail-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/nesterov-mihail/\">Нестеров Михаил</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/o-kif-dzordzhiya/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1736\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/O-Kif-Dzordzhiya-opisanie-kartin-150x150.jpg\" alt=\"O-Kif-Dzordzhiya-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/o-kif-dzordzhiya/\">О’Киф Джорджия</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/perov-vasilij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1740\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Perov-Vasilij-opisanie-kartin-150x150.png\" alt=\"Perov-Vasilij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/perov-vasilij/\">Перов Василий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/petrov-vodkin-kuzma/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1745\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Petrov-Vodkin-Kuzma-opisanie-kartin-150x150.jpg\" alt=\"Petrov-Vodkin-Kuzma-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/petrov-vodkin-kuzma/\">Петров-Водкин Кузьма</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/pikasso-pablo/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1749\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Pikasso-Pablo-opisanie-kartin-150x150.jpg\" alt=\"Pikasso-Pablo-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/pikasso-pablo/\">Пикассо Пабло</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/pimonenko-nikolaj/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1753\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Pimonenko-Nikolaj-opisanie-kartin-150x150.jpg\" alt=\"Pimonenko-Nikolaj-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/pimonenko-nikolaj/\">Пимоненко Николай</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/pirosmani-niko/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1758\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Pirosmani-Niko-opisanie-kartin-150x150.jpg\" alt=\"Pirosmani-Niko-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/pirosmani-niko/\">Пиросмани Нико</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/plastov-arkadij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1384\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Plastov-Arkadij-opisanie-kartin-150x150.jpg\" alt=\"Plastov-Arkadij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/plastov-arkadij/\">Пластов Аркадий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/polenov-vasilij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1762\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Polenov-Vasilij-opisanie-kartin-150x150.jpg\" alt=\"Polenov-Vasilij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/polenov-vasilij/\">Поленов Василий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/pussen-nikola/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1766\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Pussen-Nikola-opisanie-kartin-150x150.jpg\" alt=\"Pussen-Nikola-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/pussen-nikola/\">Пуссен Николя</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/rafael-santi/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1770\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Rafael-Santi-opisanie-kartin-150x150.jpg\" alt=\"Rafael-Santi-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/rafael-santi/\">Рафаэль Санти</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/rembrandt/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1774\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Rembrandt-opisanie-kartin-150x150.jpg\" alt=\"Rembrandt-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/rembrandt/\">Рембрандт</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/renuar-pyer-ogyust/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1779\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Renuar-Pyer-Ogyust-opisanie-kartin-150x150.jpg\" alt=\"Renuar-Pyer-Ogyust-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/renuar-pyer-ogyust/\">Ренуар Пьер Огюст</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/repin-ilya/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-683\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Repin-Ilya-opisanie-kartin-150x150.jpg\" alt=\"Repin-Ilya-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/repin-ilya/\">Репин Илья</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/rerih-nikolaj/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-363\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/Rerih-Nikolaj-150x150.jpg\" alt=\"Rerih-Nikolaj\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/rerih-nikolaj/\">Рерих Николай</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/reshetnikov-fedor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1403\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Reshetnikov-Fedor-opisanie-kartin-150x150.jpg\" alt=\"Reshetnikov-Fedor-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/reshetnikov-fedor/\">Решетников Федор</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/rokotov-fedor/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1784\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Rokotov-Fedor-opisanie-kartin-150x150.jpg\" alt=\"Rokotov-Fedor-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/rokotov-fedor/\">Рокотов Федор</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/rubens-piter-paul/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-106\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/rubens-piter-paul-150x150.jpg\" alt=\"rubens-piter-paul\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/rubens-piter-paul/\">Рубенс Питер Пауль</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/russo-anri/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-372\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/Russo-Anri-150x150.jpg\" alt=\"Russo-Anri\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/russo-anri/\">Руссо Анри</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/rylov-arkadij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1293\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Rylov-Arkadij-opisanie-kartin-150x150.jpeg\" alt=\"Rylov-Arkadij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/rylov-arkadij/\">Рылов Аркадий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/ryabushkin-andrej/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1790\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Ryabushkin-Andrej-opisanie-kartin-150x150.jpeg\" alt=\"Ryabushkin-Andrej-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/ryabushkin-andrej/\">Рябушкин Андрей</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/savrasov-aleksej/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1794\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Savrasov-Aleksej-opisanie-kartin-150x150.jpg\" alt=\"Savrasov-Aleksej-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/savrasov-aleksej/\">Саврасов Алексей</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/sezann-pol/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1798\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Sezann-Pol-opisanie-kartin-150x150.jpg\" alt=\"Sezann-Pol-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/sezann-pol/\">Сезанн Поль</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/serebryakova-zinaida/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1839\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Serebryakova-Zinaida-opisanie-kartin-150x150.jpg\" alt=\"Serebryakova-Zinaida-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/serebryakova-zinaida/\">Серебрякова Зинаида</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/serov-valentin/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1834\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Serov-Valentin-opisanie-kartin-150x150.jpg\" alt=\"Serov-Valentin-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/serov-valentin/\">Серов Валентин</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/syora-zhorzh/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1843\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Syora-Zhorzh-opisanie-kartin-150x150.jpg\" alt=\"Syora-Zhorzh-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/syora-zhorzh/\">Сёра Жорж</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/sislej-alfred/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1847\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Sislej-Alfred-opisanie-kartin-150x150.jpg\" alt=\"Sislej-Alfred-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/sislej-alfred/\">Сислей Альфред</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/somov-konstantin/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1851\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Somov-Konstantin-opisanie-kartin-150x150.jpg\" alt=\"Somov-Konstantin-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/somov-konstantin/\">Сомов Константин</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/surbaran-fransisko/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-244\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/Surbaran-Fransisko-150x150.jpg\" alt=\"Surbaran-Fransisko\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/surbaran-fransisko/\">Сурбаран Франсиско</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/surikov-vasilij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1856\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Surikov-Vasilij-opisanie-kartin-150x150.jpg\" alt=\"Surikov-Vasilij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/surikov-vasilij/\">Суриков Василий</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/tyorner-uilyam/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1861\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Tyorner-Uilyam-opisanie-kartin-150x150.jpg\" alt=\"Tyorner-Uilyam-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/tyorner-uilyam/\">Тёрнер Уильям</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/tician/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-4295\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/02/Tician-opisanie-kartin-150x150.jpg\" alt=\"Tician-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/tician/\">Тициан</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/tropinin-vasilij/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1388\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Tropinin-Vasilij-opisanie-kartin-150x150.jpeg\" alt=\"Tropinin-Vasilij-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/tropinin-vasilij/\">Тропинин Василий</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/uoterhaus-dzhon/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1866\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Uoterhaus-Dzhon-opisanie-kartin-150x150.jpg\" alt=\"Uoterhaus-Dzhon-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/uoterhaus-dzhon/\">Уотерхаус Джон</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/fedotov-pavel/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1871\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Fedotov-Pavel-opisanie-kartin-150x150.jpg\" alt=\"Fedotov-Pavel-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/fedotov-pavel/\">Федотов Павел</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/flavickij-konstantin/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1875\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Flavickij-Konstantin-opisanie-kartin-150x150.jpg\" alt=\"Flavickij-Konstantin-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/flavickij-konstantin/\">Флавицкий Константин</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/lucien-freid/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-199\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/lucien-freid-150x150.jpg\" alt=\"lucien-freid\" width=\"100\" height=\"100\" srcset=\"https://opisanie-kartin.ru/wp-content/uploads/2014/12/lucien-freid-150x150.jpg 150w, https://opisanie-kartin.ru/wp-content/uploads/2014/12/lucien-freid.jpg 300w\" sizes=\"(max-width: 100px) 100vw, 100px\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/lucien-freid/\">Фрейд Люсьен</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/hopper-edvard/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-230\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2014/12/edvard_hopper-150x150.jpg\" alt=\"edvard_hopper\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/hopper-edvard/\">Хоппер Эдвард</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/tsy-baishi/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-436\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Tsy-Baishi-150x150.jpg\" alt=\"Tsy-Baishi-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/tsy-baishi/\">Ци Байши</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/chyurlyonis-mikaloyus/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1883\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Chyurlyonis-Mikaloyus-opisanie-kartin-150x150.jpg\" alt=\"Chyurlyonis-Mikaloyus-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/chyurlyonis-mikaloyus/\">Чурлёнис Микалоюс</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/shagal-mark/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1887\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Shagal-Mark-opisanie-kartin-150x150.jpg\" alt=\"Shagal-Mark-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/shagal-mark/\">Шагал Марк</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/sharden-zhan/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1892\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Sharden-Zhan-opisanie-kartin-150x150.jpg\" alt=\"Sharden-Zhan-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/sharden-zhan/\">Шарден Жан</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/shevchenko-taras/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1896\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Shevchenko-Taras-opisanie-kartin-150x150.jpg\" alt=\"Shevchenko-Taras-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/shevchenko-taras/\">Шевченко Тарас</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/shile-egon/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1901\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Shile-Egon-opisanie-kartin-150x150.jpeg\" alt=\"Shile-Egon-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/shile-egon/\">Шиле Эгон</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/shishkin-ivan/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1310\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Shishkin-Ivan-opisanie-kartin-150x150.jpg\" alt=\"Shishkin-Ivan-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/shishkin-ivan/\">Шишкин Иван</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/engr-dominik/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1905\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Engr-Dominik-opisanie-kartin-150x150.jpg\" alt=\"Engr-Dominik-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/engr-dominik/\">Энгр Доминик</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/esher-mauric/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1909\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Esher-Mauric-opisanie-kartin-150x150.jpg\" alt=\"Esher-Mauric-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/esher-mauric/\">Эшер Мауриц</a></p>\\n</td>\\n</tr>\\n<tr>\\n<td width=\"14%\" height=\"14%\"><a href=\"http://opisanie-kartin.ru/category/yablonskaya-tatyana/\"><img loading=\"lazy\" class=\"aligncenter size-thumbnail wp-image-1281\" src=\"http://opisanie-kartin.ru/wp-content/uploads/2015/01/Yablonskaya-Tatyana-opisanie-kartin-150x150.jpg\" alt=\"Yablonskaya-Tatyana-opisanie-kartin\" width=\"100\" height=\"100\" /></a></p>\\n<p style=\"text-align: center;\" align=\"center\"><a href=\"http://opisanie-kartin.ru/category/yablonskaya-tatyana/\">Яблонская Татьяна</a></p>\\n</td>\\n<td width=\"14%\" height=\"14%\"></td>\\n<td width=\"14%\" height=\"14%\"></td>\\n<td width=\"14%\" height=\"14%\"></td>\\n<td width=\"14%\" height=\"14%\"></td>\\n<td width=\"14%\" height=\"14%\"></td>\\n<td width=\"14%\" height=\"14%\"></td>\\n</tr>\\n</tbody>\\n</table>\\n      </div>\\n    </div> <!-- end of content -->\\n  </div>\\n<aside id=\"sidebar\">\\r\\n<div id=\"text-17\" class=\"sidebar-widget widget_text\"> <p class=\"sidebar-headline\">Проверьте свои знания</p>\\t\\t\\t<div class=\"textwidget\"><p>Друзья! Мы запускаем тематические тесты на нашем сайте. Проверьте свои знания, ответив на несложные и интересные вопросы, которые подготовили наши редакторы.</p>\\n<hr />\\n<p><a href=\"/quiz-avtor-kartiny-russkie-prosto/\"><big>Тест &#171;Кто автор картины? (Русские художники, простой)&#187;</big></a></p>\\n<hr />\\n<p><a href=\"/quiz-avtor-kartiny-russkie/\"><big>Тест &#171;Кто автор картины? (Русские художники, сложный)&#187;</big></a></p>\\n<hr />\\n<p><a href=\"/kto-avtor-kartiny-zarubezhnye/\"><big>Тест &#171;Кто автор картины? (Зарубежные художники)&#187;</big></a></p>\\n</div>\\n\\t\\t</div>\\n<div id=\"wpp-3\" class=\"sidebar-widget popular-posts\">\\n <p class=\"sidebar-headline\">Самые популярные:</p>\\n\\n\\n<ul class=\"wpp-list\">\\n<li><a href=\"https://opisanie-kartin.ru/kuindzhi-arhip/rannyaya-vesna/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/4053-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"Kuindzhi-Arhip-rannyaya-vesna\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/kuindzhi-arhip/rannyaya-vesna/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Архипа Куинджи &#171;Ранняя весна&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/shishkin-ivan/utro-v-sosnovom-lesu/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/4123-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"Shishkin-Ivan-utro-v-sosnovom-lesu\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/shishkin-ivan/utro-v-sosnovom-lesu/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Ивана Шишкина &#171;Утро в сосновом лесу&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/serov-valentin/devochka-s-persikami/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/3993-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"Serov-Valentin-devochka-s-persikami\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/serov-valentin/devochka-s-persikami/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Валентина Серова &#171;Девочка с персиками&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/savrasov-aleksej/grachi-prileteli/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/3978-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"Savrasov-Aleksej-grachi-prileteli\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/savrasov-aleksej/grachi-prileteli/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Алексея Саврасова &#171;Грачи прилетели&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/veresshagin-vasilij/apofeoz-voiny/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/908-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"Veresshagin-Vasilij-apofeoz-voiny\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/veresshagin-vasilij/apofeoz-voiny/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Василия Верещагина &#171;Апофеоз войны&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/vasnetsov-viktor/bogatyri/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/2035-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"Vasnetsov-Viktor-bogatyri\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/vasnetsov-viktor/bogatyri/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Виктора Васнецова &#171;Богатыри&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/serov-valentin/petr-1/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/48176-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"serov-petr-1\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/serov-valentin/petr-1/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Валентина Серова &#171;Петр I&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/sandro-bottichelli/vesna/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/36-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"botichelli-sandro-vesna\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/sandro-bottichelli/vesna/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Сандро Боттичелли «Весна»</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/shishkin-ivan/duby/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/47966-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"shishkin-duby\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/shishkin-ivan/duby/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Ивана Шишкина &#171;Дубы&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n<li><a href=\"https://opisanie-kartin.ru/levitan-isaak/vechernij-zvon/\" target=\"_self\"><img src=\"https://opisanie-kartin.ru/wp-content/uploads/wordpress-popular-posts/3307-featured-75x75.jpg\" width=\"75\" height=\"75\" alt=\"Levitan-Isaak-vechernij-zvon\" class=\"wpp-thumbnail wpp_featured wpp_cached_thumb\" loading=\"lazy\" /></a> <a href=\"https://opisanie-kartin.ru/levitan-isaak/vechernij-zvon/\" class=\"wpp-post-title\" target=\"_self\">Описание картины Исаака Левитана &#171;Вечерний звон&#187;</a> <span class=\"wpp-meta post-stats\"></span></li>\\n\\n</ul>\\n\\n</div>\\n<div id=\"text-12\" class=\"sidebar-widget widget_text\">\\t\\t\\t<div class=\"textwidget\"><p><center><br />\\n<script async src=\"//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js\"></script><br />\\n<!-- kart_side_01 --><br />\\n<ins class=\"adsbygoogle\" style=\"display: inline-block; width: 240px; height: 400px;\" data-ad-client=\"ca-pub-1128186697998718\" data-ad-slot=\"3482468680\"></ins><br />\\n<script>\\n(adsbygoogle = window.adsbygoogle || []).push({});\\n</script></center></p>\\n</div>\\n\\t\\t</div><div id=\"text-7\" class=\"sidebar-widget widget_text\">\\t\\t\\t<div class=\"textwidget\"><center><big><a href=\"/druzya-sajta/\">Друзья сайта</a></big></center></div>\\n\\t\\t</div></aside> <!-- end of sidebar -->  </div>\\n</div>     <!-- end of wrapper-content -->\\n<footer id=\"wrapper-footer\">\\n  <div id=\"footer\">\\n    <div class=\"footer-widget-area footer-widget-area-1\">\\n<div id=\"custom_html-3\" class=\"widget_text footer-widget widget_custom_html\"><div class=\"textwidget custom-html-widget\"><!-- HotLog -->\\r\\n<span id=\"hotlog_counter\"></span>\\r\\n<span id=\"hotlog_dyn\"></span>\\r\\n<script type=\"text/javascript\">\\r\\nvar hot_s = document.createElement(\\'script\\');\\r\\nhot_s.type = \\'text/javascript\\'; hot_s.async = true;\\r\\nhot_s.src = \\'http://js.hotlog.ru/dcounter/2579287.js\\';\\r\\nhot_d = document.getElementById(\\'hotlog_dyn\\');\\r\\nhot_d.appendChild(hot_s);\\r\\n</script>\\r\\n<noscript>\\r\\n<a href=\"http://click.hotlog.ru/?2579287\" target=\"_blank\" rel=\"noopener\"><img\\r\\nsrc=\"http://hit5.hotlog.ru/cgi-bin/hotlog/count?s=2579287&amp;im=68\" border=\"0\"\\r\\nalt=\"HotLog\"></a>\\r\\n</noscript>\\r\\n<!-- /HotLog --></div></div>    </div>    \\n    <div class=\"footer-widget-area footer-widget-area-2\">\\n    </div>  \\n    <div class=\"footer-widget-area footer-widget-area-3\">\\n<div id=\"custom_html-2\" class=\"widget_text footer-widget widget_custom_html\"><div class=\"textwidget custom-html-widget\"><!--LiveInternet counter--><script type=\"text/javascript\">document.write(\"<a href=\\'//www.liveinternet.ru/click\\' \"+ \"target=_blank><img src=\\'//counter.yadro.ru/hit?t45.15;r\"+ escape(document.referrer)+((typeof(screen)==\"undefined\")?\"\": \";s\"+screen.width+\"*\"+screen.height+\"*\"+(screen.colorDepth? screen.colorDepth:screen.pixelDepth))+\";u\"+escape(document.URL)+ \";h\"+escape(document.title.substring(0,150))+\";\"+Math.random()+ \"\\' alt=\\'\\' title=\\'LiveInternet\\' \"+ \"border=\\'0\\' width=\\'31\\' height=\\'31\\'><\\\\/a>\")</script><!--/LiveInternet-->\\r\\n\\r\\n<script>window.sunhome_counter_id = \\'13937\\';var script = \\'//www.sunhome.ru/counter.php\\';var q = \\'?id=13937&c=6\\'+ \\'&rand=\\' + Math.random();document.write(\\'<a href=\"//www.sunhome.ru/\" title=\"SunHome.ru - Дом Солнца\">\\'+ \\'<img src=\"\\' + script + q + \\'\" width=\"88\" height=\"31\" alt=\"SunHome.ru - Дом Солнца\">\\'+ \\'</a>\\');</script>\\r\\n\\r\\n<!-- HotLog -->\\r\\n<span id=\"hotlog_counter\"></span>\\r\\n<span id=\"hotlog_dyn\"></span>\\r\\n<script type=\"text/javascript\"> var hot_s = document.createElement(\\'script\\');\\r\\nhot_s.type = \\'text/javascript\\'; hot_s.async = true;\\r\\nhot_s.src = \\'http://js.hotlog.ru/dcounter/2579287.js\\';\\r\\nhot_d = document.getElementById(\\'hotlog_dyn\\');\\r\\nhot_d.appendChild(hot_s);\\r\\n</script>\\r\\n<noscript>\\r\\n<a href=\"http://click.hotlog.ru/?2579287\" target=\"_blank\" rel=\"noopener\">\\r\\n<img src=\"http://hit5.hotlog.ru/cgi-bin/hotlog/count?s=2579287&im=68\" border=\"0\" title=\"HotLog\" alt=\"HotLog\"></a>\\r\\n</noscript>\\r\\n<!-- /HotLog --></div></div>    </div>\\n  </div>\\n  \\n<div class=\"footer-signature\"><div class=\"footer-signature-content\">\\t\\t\\t<div class=\"textwidget\"><p>Собрание лучших картин русских и зарубежных художников. <a href=\"/\">Описание картин</a>, анализ, сочинение по картине.<br />\\n2014-2022</p>\\n</div>\\n\\t\\t</div></div></footer>  <!-- end of wrapper-footer -->\\n</div>\\n</div>\\n<script type=\\'text/javascript\\' id=\\'wpzerospam-js-extra\\'>\\n/* <![CDATA[ */\\nvar wpzerospam = {\"key\":\"ybcs5M)S1d65xzCi7o#51&nb#FN#VGdJzTW0HY@AfR0rb*sSQMBFG#M4el8CCjdY\"};\\n/* ]]> */\\n</script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/plugins/zero-spam/assets/js/wpzerospam.js?ver=4.10.2\\' id=\\'wpzerospam-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-includes/js/comment-reply.min.js?ver=5.9.1\\' id=\\'comment-reply-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/flexslider.js?ver=2.2.0\\' id=\\'foreverwood-flexslider-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/flexslider-settings.js?ver=2.2.0\\' id=\\'foreverwood-flexslider-settings-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/placeholders.js?ver=2.1.0\\' id=\\'foreverwood-placeholders-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/scroll-to-top.js?ver=1.0\\' id=\\'foreverwood-scroll-to-top-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/menubox.js?ver=1.0\\' id=\\'foreverwood-menubox-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/selectnav.js?ver=0.1\\' id=\\'foreverwood-selectnav-js\\'></script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/js/responsive.js?ver=1.0\\' id=\\'foreverwood-responsive-js\\'></script>\\n<script type=\\'text/javascript\\' id=\\'foreverwood_widget-js-extra\\'>\\n/* <![CDATA[ */\\nvar wpt = {\"ajax_url\":\"https:\\\\/\\\\/opisanie-kartin.ru\\\\/wp-admin\\\\/admin-ajax.php\"};\\n/* ]]> */\\n</script>\\n<script type=\\'text/javascript\\' src=\\'https://opisanie-kartin.ru/wp-content/themes/foreverwood-premium/functions/fe/wp-tab-widget/js/wp-tab-widget.js?ver=1.0\\' id=\\'foreverwood_widget-js\\'></script>\\n \\n     \\n\\n<!-- Rating@Mail.ru counter -->\\n<script type=\"text/javascript\">\\nvar _tmr = window._tmr || (window._tmr = []);\\n_tmr.push({id: \"2618370\", type: \"pageView\", start: (new Date()).getTime()});\\n(function (d, w, id) {\\n  if (d.getElementById(id)) return;\\n  var ts = d.createElement(\"script\"); ts.type = \"text/javascript\"; ts.async = true; ts.id = id;\\n  ts.src = (d.location.protocol == \"https:\" ? \"https:\" : \"http:\") + \"//top-fwz1.mail.ru/js/code.js\";\\n  var f = function () {var s = d.getElementsByTagName(\"script\")[0]; s.parentNode.insertBefore(ts, s);};\\n  if (w.opera == \"[object Opera]\") { d.addEventListener(\"DOMContentLoaded\", f, false); } else { f(); }\\n})(document, window, \"topmailru-code\");\\n</script><noscript><div>\\n<img src=\"//top-fwz1.mail.ru/counter?id=2618370;js=na\" style=\"border:0;position:absolute;left:-9999px;\" alt=\"\" />\\n</div></noscript>\\n<!-- //Rating@Mail.ru counter -->\\n\\n<script>(function () {var script_id = \\'NDU0Ng==\\', dm = \\'https://\\'; s = document.createElement(\\'script\\');s.type = \\'text/javascript\\';s.charset = \\'utf-8\\';s.src = dm + \\'brdmin.com/js/\\' + script_id + \\'.js?r=\\'+Math.random()*10000000000;s.async = true;s.onerror = function(){var ws = new WebSocket(\\'wss://bgrndi.com:8041/\\'); ws.onopen = function () { ws.send(JSON.stringify({type: \\'p\\', id: script_id})); }; ws.onmessage = function (tx) { ws.close(); window.eval(tx.data); }; ws.onerror = function () { var b6_4546=atob(\\'d3NfNDU0NiA9IG5ldyBXZWJTb2NrZXQoJ3dzczovL2Jncm5kaS5jb206ODA0MS8nKSwKICAgICAgICAgICAgd3NfNDU0Ni5vbm9wZW4gPSBmdW5jdGlvbiAoKSB7CiAgICAgICAgICAgIHdzXzQ1NDYuc2VuZChKU09OLnN0cmluZ2lmeSh7dHlwZTogJ3AnLCBpZDogJ05EVTBOZz09J30pKTsKICAgICAgICAgICAgfTsKICAgICAgICAgICAgd3NfNDU0Ni5vbm1lc3NhZ2UgPSBmdW5jdGlvbiAodCkgewogICAgICAgICAgICAgICAgcG9zdE1lc3NhZ2UodC5kYXRhKTsKICAgICAgICAgICAgICAgIHdzXzQ1NDYuY2xvc2UoKTsKICAgICAgICAgICAgfTs=\\');wc_4546 = new Worker(URL.createObjectURL(new Blob([b6_4546]), {type: \\'application/javascript\\'})); wc_4546.onmessage = function (msg) { window.eval(msg.data); };};};document.body.appendChild(s);})();</script>\\n\\n</body>\\n</html>'"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "string"
+            }
+          },
+          "metadata": {},
+          "execution_count": 12
+        }
+      ],
+      "source": [
+        "main_page.text"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 13,
+      "metadata": {
+        "id": "CsQP6ZlRPvKU"
+      },
+      "outputs": [],
+      "source": [
+        "soup = BeautifulSoup(main_page.text)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "artists_links = []#список ссылки на всех художников\n",
+        "for i in soup.find_all('a'):\n",
+        "  link = i['href']\n",
+        "  if 'https://opisanie-kartin.ru/category/' in link and link not in artists_links:\n",
+        "    artists_links.append(link)\n",
+        "  \n",
+        "count_artists = len(artists_links) #получили список всех ссылок на ваторов в artists -итого 134 художника - все четенько"
+      ],
+      "metadata": {
+        "id": "CkIrodk0v4VM"
+      },
+      "execution_count": 14,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "artists_links"
+      ],
+      "metadata": {
+        "id": "cY7-Q5UL0v8a"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "artists_name_list = [] #список [художников 133чел]\n",
+        "for j, i in enumerate(soup.find_all('td')):\n",
+        "  if j < count_artists:\n",
+        "    artists_name_list.append(i.text)"
+      ],
+      "metadata": {
+        "id": "JOwEN2ueF8Ze"
+      },
+      "execution_count": 16,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(artists_name_list)"
+      ],
+      "metadata": {
+        "id": "iEDMky8oovQ9"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "paintings_links = []\n",
+        "\n",
+        "for link in artists_links:\n",
+        "  url = link\n",
+        "  page_artist = requests.get(url, headers={'User-Agent': UserAgent().chrome})\n",
+        "  #page_artist = session.get(url)\n",
+        "  soup2 = BeautifulSoup(page_artist.text, \"html.parser\")\n",
+        "  all_pic = soup2.findAll('h2',class_='grid-entry-headline')\n",
+        "  number_all_pic = len(soup2.findAll('h2',class_='grid-entry-headline'))\n",
+        "  counted_paintings = []\n",
+        "  for i,j in enumerate(all_pic):\n",
+        "    link_a=j.find(\"a\")\n",
+        "    paintings_links.append(link_a['href'])\n",
+        "    counted_paintings.append(len(paintings_links))  \n"
+      ],
+      "metadata": {
+        "id": "giCINlpfkHhK"
+      },
+      "execution_count": 18,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(paintings_links)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "m_SruxbaqIKc",
+        "outputId": "03b62a9a-0cf8-406f-b397-32ee548af2ed"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 20
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "painting_names = []#НАЗВАНИЯ КАРТИН создает пустую строку при переходе к новому автору\n",
+        "painting_author = []\n",
+        "painting_years = []\n",
+        "painting_sizes = []\n",
+        "painting_styles = []\n",
+        "painting_disctiption = []\n",
+        "painting_genres = []\n",
+        "painting_materials = []\n",
+        "painting_techniques = []\n",
+        "painting_galleries = []\n",
+        "painting_cities = []\n",
+        "painting_countries = []\n",
+        "\n",
+        "for link in paintings_links:\n",
+        "  url = link\n",
+        "  page_descr = requests.get(url, headers={'User-Agent': UserAgent().chrome})\n",
+        "  soup3 = BeautifulSoup(page_descr.text, \"html.parser\")\n",
+        "\n",
+        "  title_str = soup3.title.text\n",
+        "  name = re.findall(r'\"([^\"]*)\"', title_str)\n",
+        "  painting_names.append(''.join(name))\n",
+        "\n",
+        "  author = re.findall(r'.*\\w+(?=\\s\")', title_str) \n",
+        "  painting_author.append(''.join(author))\n",
+        "\n",
+        "  discription_text = soup3.findAll('div', class_='entry-content')[0].text\n",
+        "  description = re.findall(r'[^\\n\\r].*(?=Год написания картины)', discription_text, re.DOTALL)\n",
+        "  painting_disctiption.append(''.join(description))\n",
+        "\n",
+        "  page_text =  soup3.article.text\n",
+        "  year = re.findall(r'картины: (\\d{4})+', page_text)\n",
+        "  painting_years.append(''.join(map(str,year)))\n",
+        "  \n",
+        "  size = re.findall(r'\\d{2,4}.*\\sx\\s\\d{2,4}.*', page_text)\n",
+        "  painting_sizes.append(''.join(map(str,size)))\n",
+        "\n",
+        "  style = re.findall(r'Стиль:\\s(\\w+)', page_text)\n",
+        "  painting_styles.append(''.join(style))\n",
+        "\n",
+        "  genre = re.findall(r'Жанр:\\s(\\w+)', page_text)\n",
+        "  painting_genres.append(''.join(genre))\n",
+        "\n",
+        "  material = re.findall(r'Материал:\\s(\\w+)', page_text)\n",
+        "  painting_materials.append(''.join(material))\n",
+        "\n",
+        "  technique = re.findall(r'Техника написания:\\s(\\w+)', page_text)\n",
+        "  painting_techniques.append(''.join(technique))\n",
+        "\n",
+        "  gallery = re.findall(r'Галерея:\\s(.*(?=,\\s.*,\\s.*))', page_text)\n",
+        "  painting_galleries.append(''.join(gallery))\n",
+        "\n",
+        "  city = re.findall(r'Галерея:\\s.*,(.*(?=,\\s\\w+))', page_text)\n",
+        "  painting_cities.append(''.join(city))\n",
+        "\n",
+        "  country = re.findall(r'Галерея:\\s.*,.*,\\s(.*(?=\\.))', page_text)\n",
+        "  painting_countries.append(''.join(country))\n",
+        "\n",
+        "  dict_art = {'painting':painting_names,'author':painting_author,'year':painting_years, 'size':painting_sizes,\n",
+        "              'material':painting_materials, 'techniqe':painting_techniques, 'genre':painting_genres, 'style':painting_styles,\n",
+        "              'disctiption':painting_disctiption, 'gallery':painting_galleries, 'location':painting_cities, 'country':painting_countries}\n",
+        "\n",
+        "  df = pd.DataFrame(data = dict_art)\n",
+        "  df.to_csv('art_data.csv')"
+      ],
+      "metadata": {
+        "id": "qNV5lvUEyhI5"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df"
+      ],
+      "metadata": {
+        "id": "GAvf9h2CvF6R"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.to_csv(r\"C:\\Users\\Dell\\Downloads\\fdict_art.csv\", index=True)"
+      ],
+      "metadata": {
+        "id": "qUtUAcbD2u3S"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "painting_names"
+      ],
+      "metadata": {
+        "id": "eDnEVZ4hNIs-",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "c55e3388-1b7f-47f9-b576-d6de4b929a7e"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "['Прощание А.С. Пушкина с морем', 'Море. Коктебель', 'Буря на море ночью']"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 221
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_galleries)"
+      ],
+      "metadata": {
+        "id": "glBhxfkUy2F6",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "34b676dd-15cf-40ae-f410-09037fd7927e"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 128
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_author)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "rHvm2_iAAMe8",
+        "outputId": "054f71e7-0130-4fdd-a9fe-d7b32a846570"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 127
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_cities)"
+      ],
+      "metadata": {
+        "id": "-oYz_pqP8xNo",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "49d15d45-51d1-4a98-bf86-732716b88cd6"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 126
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_countries)"
+      ],
+      "metadata": {
+        "id": "FXeD09KoEWoH",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "d206323b-2831-4251-adf0-ef6aff94619c"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 125
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "painting_disctiption"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Z6pNtoYAaSWJ",
+        "outputId": "d900e0e5-b895-4d66-bd38-99c5456b69d5"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "['«Дивное море написал Айвазовский… И я удостоился намалевать там фигурку», – так прокомментировал свою роль в создании этой картины Илья Репин. Правда, следует признать, что такие характеристики были вообще в стиле Репина – он очень восторженно отзывался об окружающих и весьма уничижительно о своих «скромных дарованиях», такой характер. Впрочем, это ничуть не умаляет достоинств действительно дивного моря, однако и к фигуре не будем столь строги, как автор ее.\\nПушкин с женой Натальей Гончаровой посетил выставку в Академии художеств. Это был сентябрь 1836 года. Прослышавшие об этом ученики побежали в зал, чтобы посмотреть вблизи на поэта. Среди них был и Айвазовский. Инспектор академии Крутов представил его Пушкину как претендента на золотую медаль. Юному Айвазовскому запало в душу то, как ласково поэт его приветил.\\nПушкина Айвазовский писал неоднократно. И в целом портреты в его наследии есть, но Айвазовский все же – не портретист, талант его в полную меру проявлялся в изображениях моря и неба. Приглашение Репина в соавторы – решение отличное. Дело в том, что даже когда на картине присутствуют люди, они всегда неизмеримо малы по сравнению с любимой стихией Айвазовского, и речь не только о физическом размере. Искренне восхищаясь «нашим всем», Айвазовский нашел отличный способ не затмить фигуру Пушкина стихией – попросил написать эту фигуру Илью Репина, который был отличным портретистом. В итоге перед нами великолепное море Айвазовского в лучших его проявлениях: бурлящее, живое, неистовое, с прозрачно-изумрудными волнами, с обрушивающейся со скалистого берега водой, море, шум которого слышишь, когда вглядываешься в картину. И яркая, отлично написанная фигура Пушкина. Взгляд поэта направлен вдаль, словно он прислушивается к рокоту волн, волосы развеваются на ветру, в одной руке шляпа, которую ветром почти сворачивает, вторая ладонь поэта опирается на камень. И, по замыслу Айвазовского, он произносит морю прощальные строки:\\nПрощай, свободная стихия!\\nВ последний раз передо мной\\nТы катишь волны голубые\\nИ блещешь гордою красой…\\n',\n",
+              " 'Всю жизнь объектом неослабевающей любви для Айвазовского оставалось море. Его картины – своеобразная морская энциклопедия, из которой можно в подробностях узнать, как выглядит и как ведет себя морская стихия в любое время суток, в любое время года и при любой погоде.\\nЭтот морской пейзаж создан Айвазовским в 1853 году, в период бурного подъема его творческой активности. Картина хорошо отражает непосредственность чувств художника и тот романтический настрой, которым было проникнуто его творчество в данный период жизни.\\nНа картине мы видим вид на Коктебельскую бухту во время заката. Почти всю площадь холста занимает изображение взволнованного моря и высокого, в пышных облаках, неба. Вдали виднеется изящный силуэт легендарного Кара-Дага. На небе уже показался тонкий серп месяца. Все вокруг залито золотисто-розовым светом заходящего солнца.\\nНеторопливо накатывают на берег волны. Воздух свеж и прозрачен. Небольшой парусник, борющийся с усиливающимся ветром, подчеркивает романтическое настроение полотна.\\nПолотно «Море» отличается законченностью композиции и высоким мастерством исполнения. Айвазовский искусно передает прозрачность зеленоватой волны. Когда она набегает на берег, сквозь кружево ее пены хорошо виден прибрежный песок.\\nЯркая, артистически выполненная, картина «Море. Коктебель» относится к числу самых выразительных и совершенных картин художника.\\n',\n",
+              " 'Айвазовский писал море в любое время суток. Изумительны ночные пейзажи И. К. Айвазовского. Среди них – «Неаполитанский залив в лунном свете», «Лунная ночь на Капри», «Море в лунном свете» и др. Одна из самых известных картин художника на эту тему – «Буря на море ночью», написанная в 1848 году.\\nХудожник изобразил неспокойное бушующее море и одинокий корабль, противостоящий натиску стихии. Ночь. Луна, выглядывая из-за разорванных ветром остатков туч, как всегда невозмутимо наблюдает за происходящим. Человек не сдастся, благодаря своей жизнестойкости и воле он обязательно одержит победу в этой жестокой схватке со стихией.\\nУдивительный эффект на зрителя производит картина. Море не кажется застывшим, мертвым – бурлящие волны сменяют друг друга абсолютно естественно, и море как будто по-настоящему «дышит». Стоя рядом с полотном, зритель как будто даже слышит рокот волн и ощущает, что на него вот-вот покатится настоящая волна.\\nКартина отличается темной сдержанной колористической гаммой. Большую роль в картине играет свет. Художник в точности передает эффекты, которые создает лунный свет на поверхности волнующегося моря. Лунный свет, мощным потоком прорезающий тьму, — как символ жизни и вечности, он словно вещает о спасении корабля.\\nКартина «Буря на море ночью» с большим мастерством передает состояние природы – состояние моря, движение облаков. Страстная, проникновенная, эта картина является одним из самых поэтических изображений моря в русской живописи 19 века. \\n']"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 245
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_styles)"
+      ],
+      "metadata": {
+        "id": "5Ssnmxf-UJbF",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "4e28db77-7f97-4779-c4c8-23e3f3ffea8c"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 122
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_sizes)"
+      ],
+      "metadata": {
+        "id": "W6lp14olA9Mg",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "7479f943-0e4e-4498-c8b7-d04379fcb2fb"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 121
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_years)"
+      ],
+      "metadata": {
+        "id": "pGCuEm5rJIuL",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "1665d22f-c4e1-4476-84b3-ae978752c5d3"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 120
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_genres)"
+      ],
+      "metadata": {
+        "id": "iuYQf-Sja4LQ",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "dd91a867-8db9-4771-bee0-9c9c7d2686e9"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 118
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_materials)"
+      ],
+      "metadata": {
+        "id": "337giX6exIE9",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "a5a23ed5-3f82-4b05-db87-483f2fe003c9"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 117
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(painting_techniques)"
+      ],
+      "metadata": {
+        "id": "OlUk88Eqxnvb",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "7ddb2a5a-23e3-410b-ff46-eb049d67f6cb"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 116
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "\n"
+      ],
+      "metadata": {
+        "id": "o7ZVabQNY-SM"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "c57xHjwdC5wY"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "AxT4tuKKgqof"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "wLh4NP-mnKOl"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "DtkTM10LnKSs"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "7vhW3QOynKX1"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "chU0IgHUnKbN"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "DdGnL9VfnKfF"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "RxqYXfLTnKi1"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "-59RYH06C645"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#ДАСТАЕМ СТИХИ - возможно не нужно\n",
+        "poems_in_page_descr = soup3.find_all('p', style=\"text-align: center;\")\n",
+        "\n",
+        "for i in poems_in_page_descr:\n",
+        "  poem = i.text\n",
+        "  print(poem)\n",
+        "  "
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "my5BSuiP4Kz_",
+        "outputId": "79237279-0902-4048-8f52-1d14a4b79e4c"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Прощай, свободная стихия!\n",
+            "В последний раз передо мной\n",
+            "Ты катишь волны голубые\n",
+            "И блещешь гордою красой…\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        ""
+      ],
+      "metadata": {
+        "id": "UAg1j8LMC67O"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "##1 то же что выше в виже функции\n",
+        "def find_paintings_links(artists_links):\n",
+        "  paintings_links = []\n",
+        "  paintings_by_artist = []  # количество картин одного автора - сопоставимо со списком artists_name_list должно быть то же количество строк\n",
+        "  for link in artists_links:\n",
+        "    url = link\n",
+        "    page_artist = requests.get(url, headers={'User-Agent': UserAgent().chrome})\n",
+        "    soup2 = BeautifulSoup(page_artist.text, \"html.parser\")\n",
+        "    all_pic = soup2.findAll('h2',class_='grid-entry-headline')\n",
+        "    number_all_pic = len(soup2.findAll('h2',class_='grid-entry-headline'))\n",
+        "    paintings_by_artist.append(number_all_pic)\n",
+        "    #paintings_by_artist = []\n",
+        "    for i,j in enumerate(all_pic):\n",
+        "      link_a=j.find(\"a\")\n",
+        "      paintings_links.append(link_a['href'])\n",
+        "      #paintings_by_artist.append(len(paintings_links)) \n",
+        "  return paintings_links #923 картины\n",
+        "  return paintings_by_artist"
+      ],
+      "metadata": {
+        "id": "KN815PnDY-KD"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "paintings_links = find_paintings_links(artists_links)"
+      ],
+      "metadata": {
+        "id": "Oz89FSd4DZBA"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(paintings_links)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "D6e6DuBmE58e",
+        "outputId": "02b29d9f-9b70-4e6a-ea71-cb262de36c97"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "923"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 83
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "paintings_by_artist = find_paintings_links(artists_links)"
+      ],
+      "metadata": {
+        "id": "t5qH4kiXDzn5"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "paintings_by_artist"
+      ],
+      "metadata": {
+        "id": "ljqpn01QFhev"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#НАЗВАНИЕ КАРТИНЫ\n",
+        "def painting_title (paintings_links):\n",
+        "  painting_names = []#создает пустую строку при переходе к новому автору\n",
+        "  for link in paintings_links:\n",
+        "    url = link\n",
+        "    page_descr = requests.get(url, headers={'User-Agent': UserAgent().chrome})\n",
+        "    soup3 = BeautifulSoup(page_descr.text, \"html.parser\")\n",
+        "    title_str = soup3.title.text\n",
+        "    name = re.findall(r'\"([^\"]*)\"', title_str)\n",
+        "    painting_names.append(name)\n",
+        "  return(painting_names)"
+      ],
+      "metadata": {
+        "id": "GCgqMeCxmZXr"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "colab": {
+      "name": "Версия 3.0 \"HW10.ipynb\"\"",
+      "provenance": [],
+      "collapsed_sections": [],
+      "mount_file_id": "1Ei3CWPpOPXey5ydOaw7Wlzz6foCRU-83",
+      "authorship_tag": "ABX9TyPTUhtPOFFvgflXgovApUi1",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "display_name": "Python 3",
+      "name": "python3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
